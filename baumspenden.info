@@ -1,0 +1,5 @@
+name = Bergwaldprojekt Baumspenden
+description = Formulare und Verwaltung für Baumspenden
+core = 7.x
+
+version = 7.x-1.x-dev
