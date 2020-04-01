@@ -30,10 +30,16 @@ class DrupalBaumspendenConfig
      */
     public static function getPlantRegions($period)
     {
-        return [
-            'Nationalpark Sächsische Schweiz',
-            'Naturpark Pfälzerwald',
-        ];
+        $regions = [];
+
+        if ($period == 'fruehling') {
+            $regions['saggsn'] = 'Nationalpark Sächsische Schweiz';
+        }
+        elseif ($period == 'sommer') {
+            $regions['palz'] = 'Naturpark Pfälzerwald';
+        }
+
+        return $regions;
     }
 
     /**

@@ -25,80 +25,142 @@ function baumspenden_menu()
  */
 function baumspenden_donation($form, &$form_state)
 {
-    $form['amount'] = [
-        '#type' => 'textfield',
-        '#title' => 'Ich spende',
-        '#description' => 'Für mehr als 100 Bäume und Unternehmensspenden kontaktieren Sie uns bitte unter <a href="mailto:baumspende@bergwaldprojekt.de">baumspende@bergwaldprojekt.de</a>',
-        '#field_suffix' => 'Baum/Bäume',
-        '#required' => true,
-        '#element_validate' => [
-            'element_validate_integer_positive',
-        ],
-    ];
-
-    $form['plant_info'] = [
-        '#prefix' => '<div id="baumspenden-plant-info">',
+    $form['donations'] = [
+        '#type' => 'fieldset',
+        '#title' => 'Baumspenden',
+        '#tree' => true,
+        '#prefix' => '<div id="baumspenden-donations">',
         '#suffix' => '</div>',
     ];
-    $form['plant_info']['plant_period'] = [
-        '#type' => 'select',
-        '#title' => 'Pflanzperiode',
-        '#options' => DrupalBaumspendenConfig::getPlantPeriods(),
-        '#empty_option' => '- Auswählen -',
-        '#required' => true,
-        '#ajax' => [
-            'wrapper' => 'baumspenden-plant-info',
-            'callback' => '_baumspenden_donation_plant_info',
-        ],
-    ];
-    if (isset($form_state['values']['plant_period'])) {
-        $form['plant_info']['plant_region'] = [
-            '#type' => 'select',
-            '#title' => 'Region',
-            '#options' => DrupalBaumspendenConfig::getPlantRegions(
-                $form_state['values']['plant_period']
-            ),
-            '#required' => true,
-            '#ajax' => [
-                'wrapper' => 'baumspenden-plant-info',
-                'callback' => '_baumspenden_donation_plant_info',
-            ],
-        ];
+    if (empty($form_state['storage']['donations'])) {
+        $form_state['storage']['donations'][] = [];
     }
-    if (isset($form_state['values']['plant_region'])) {
-        $form['plant_info']['plant_tree'] = [
-            '#type' => 'select',
-            '#title' => 'Baumart',
-            '#options' => DrupalBaumspendenConfig::getTreeSpecies(
-                $form_state['values']['plant_period']
-            ),
-            '#required' => true,
-        ];
+    foreach ($form_state['storage']['donations'] as $key => $donation) {
+        if (is_numeric($key)) {
+            $form['donations'][$key] = [
+                '#type' => 'fieldset',
+            ];
+            $form['donations'][$key]['amount'] = [
+                '#type' => 'textfield',
+                '#title' => 'Ich spende',
+                '#description' => 'Für mehr als 100 Bäume und Unternehmensspenden kontaktieren Sie uns bitte unter <a href="mailto:baumspende@bergwaldprojekt.de">baumspende@bergwaldprojekt.de</a>',
+                '#field_suffix' => 'Baum/Bäume',
+                '#required' => true,
+                '#element_validate' => [
+                    'element_validate_integer_positive',
+                ],
+            ];
+            $form['donations'][$key]['plant_info'] = [
+                '#prefix' => '<div id="baumspenden-plant-info--' . $key . '">',
+                '#suffix' => '</div>',
+            ];
+            $form['donations'][$key]['plant_info']['plant_period'] = [
+                '#type' => 'select',
+                '#title' => 'Pflanzperiode',
+                '#options' => DrupalBaumspendenConfig::getPlantPeriods(),
+                '#empty_option' => '- Auswählen -',
+                '#required' => true,
+                '#ajax' => [
+                    'wrapper' => 'baumspenden-plant-info--' . $key,
+                    'callback' => '_baumspenden_donation_plant_info',
+                ],
+            ];
+
+            // Save values in the storage for later use.
+            if (isset($form_state['values']['donations'][$key]['plant_info']['plant_period'])) {
+                $form_state['storage']['donations'][$key]['plant_info']['plant_period'] = $form_state['values']['donations'][$key]['plant_info']['plant_period'];
+            }
+            if (isset($form_state['storage']['donations'][$key]['plant_info']['plant_period'])) {
+                $form['donations'][$key]['plant_info']['plant_region'] = [
+                    '#type' => 'select',
+                    '#title' => 'Region',
+                    '#options' => DrupalBaumspendenConfig::getPlantRegions(
+                        $form_state['storage']['donations'][$key]['plant_info']['plant_period']
+                    ),
+                    '#required' => true,
+                    '#ajax' => [
+                        'wrapper' => 'baumspenden-plant-info--' . $key,
+                        'callback' => '_baumspenden_donation_plant_info',
+                    ],
+                ];
+            }
+
+            // Save values in the storage for later use.
+            if (isset($form_state['values']['donations'][$key]['plant_info']['plant_region'])) {
+                $form_state['storage']['donations'][$key]['plant_info']['plant_region'] = $form_state['values']['donations'][$key]['plant_info']['plant_region'];
+            }
+            if (isset($form_state['storage']['donations'][$key]['plant_info']['plant_region'])) {
+                $form['donations'][$key]['plant_info']['plant_tree'] = [
+                    '#type' => 'select',
+                    '#title' => 'Baumart',
+                    '#options' => DrupalBaumspendenConfig::getTreeSpecies(
+                        $form_state['storage']['donations'][$key]['plant_info']['plant_period']
+                    ),
+                    '#required' => true,
+                ];
+            }
+            $form['donations'][$key]['plant_info']['update'] = [
+                '#type' => 'submit',
+                '#baumspenden_op' => 'update_plant_info',
+                '#value' => t('Update'),
+                '#attributes' => [
+                    'class' => [
+                        'hide-js',
+                    ],
+                ],
+                '#attached' => [
+                    'css' => [
+                        drupal_get_path(
+                            'module',
+                            'baumspenden'
+                        ) . '/css/baumspende.css',
+                    ],
+                ],
+                // Only validate related fields.
+                '#limit_validation_errors' => [
+                    ['donations', $key, 'plant_info', 'plant_period'],
+                    ['donations', $key, 'plant_info', 'plant_region'],
+                ],
+                // #submit is required when using #limit_validation_errors.
+                '#submit' => [
+                    'baumspenden_donation_submit',
+                ],
+                '#baumspenden_donation_key' => $key,
+            ];
+
+            if ($key != 0) {
+                $form['donations'][$key]['remove'] = [
+                    '#type' => 'submit',
+                    '#baumspenden_op' => 'remove_donation',
+                    '#value' => t('Remove'),
+                    // Do not validate anything.
+                    '#limit_validation_errors' => [],
+                    // #submit is required when using #limit_validation_errors.
+                    '#submit' => [
+                        'baumspenden_donation_submit',
+                    ],
+                    '#ajax' => [
+                        'wrapper' => 'baumspenden-donations',
+                        'callback' => '_baumspenden_donation_donations',
+                    ],
+                    '#baumspenden_donation_key' => $key,
+                ];
+            }
+        }
     }
-    $form['plant_info']['update'] = [
+    $form['donations']['add'] = [
         '#type' => 'submit',
-        '#value' => t('Update'),
-        '#attributes' => [
-            'class' => [
-                'hide-js',
-            ],
-        ],
-        '#attached' => [
-            'css' => [
-                drupal_get_path(
-                    'module',
-                    'baumspenden'
-                ) . '/css/baumspende.css',
-            ],
-        ],
+        '#baumspenden_op' => 'add_donation',
+        '#value' => 'Baumspende hinzufügen',
         // Only validate related fields.
-        '#limit_validation_errors' => [
-            ['plant_period'],
-            ['plant_region'],
-        ],
-        // Required when using #limit_validation_errors.
+        '#limit_validation_errors' => [],
+        // #submit is required when using #limit_validation_errors.
         '#submit' => [
             'baumspenden_donation_submit',
+        ],
+        '#ajax' => [
+            'wrapper' => 'baumspenden-donations',
+            'callback' => '_baumspenden_donation_donations',
         ],
     ];
 
@@ -178,6 +240,7 @@ function baumspenden_donation($form, &$form_state)
     ];
     $form['actions']['submit'] = [
         '#type' => 'submit',
+        '#baumspenden_op' => 'preview',
         '#value' => 'Vorschau',
     ];
 
@@ -210,13 +273,25 @@ function baumspenden_donation_validate($form, &$form_state)
 function baumspenden_donation_submit($form, &$form_state)
 {
     // Depend on which element trigered the submission.
-    switch ($form_state['triggering_element']['#value']) {
-        case $form['actions']['submit']['#value']:
-            // Regular form submission.
+    switch ($form_state['triggering_element']['#baumspenden_op']) {
+        case 'preview':
+            // Preview (next step)
+            $form_state['storage'] = $form_state['values'];
             // TODO: Process form.
             break;
-        case $form['plant_info']['update']['#value']:
+        case 'update_plant_info':
             // Updating plant info fields. Simply rebuild the form.
+            $form_state['rebuild'] = true;
+            break;
+        case 'add_donation':
+            // Add values for another donation fieldset and rebuild the form.
+            $form_state['storage']['donations'][] = [];
+            $form_state['rebuild'] = true;
+            break;
+        case 'remove_donation':
+            // Remove the donation fieldset values and rebuild the form.
+            $key = $form_state['triggering_element']['#baumspenden_donation_key'];
+            unset($form_state['storage']['donations'][$key]);
             $form_state['rebuild'] = true;
             break;
     }
@@ -227,10 +302,27 @@ function baumspenden_donation_submit($form, &$form_state)
  * by an Ajax request.
  *
  * @param $form
+ * @param $form_state
  *
- * @return mixed
+ * @return array
  */
-function _baumspenden_donation_plant_info($form)
+function _baumspenden_donation_plant_info($form, &$form_state)
 {
-    return $form['plant_info'];
+    $triggering_element_parents = $form_state['triggering_element']['#array_parents'];
+    $plant_info_parents = array_slice($triggering_element_parents, 0, 3);
+    return drupal_array_get_nested_value($form, $plant_info_parents);
+}
+
+/**
+ * Returns donations elements of the "baumspenden_donation" form to be replaced
+ * by an Ajax request.
+ *
+ * @param $form
+ * @param $form_state
+ *
+ * @return array
+ */
+function _baumspenden_donation_donations($form, &$form_state)
+{
+    return $form['donations'];
 }
