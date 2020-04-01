@@ -12,12 +12,12 @@ class DrupalBaumspendenConfig
      */
     public static function getPlantPeriods()
     {
-        return array(
+        return [
             'fruehling' => 'Frühling',
             'sommer' => 'Sommer',
             'herbst' => 'Herbst',
             'winter' => 'Winter',
-        );
+        ];
     }
 
     /**
@@ -30,10 +30,10 @@ class DrupalBaumspendenConfig
      */
     public static function getPlantRegions($period)
     {
-        return array(
+        return [
             'Nationalpark Sächsische Schweiz',
             'Naturpark Pfälzerwald',
-        );
+        ];
     }
 
     /**
@@ -44,13 +44,14 @@ class DrupalBaumspendenConfig
      *
      * @return array
      */
-    public static function getTreeSpecies($region) {
-        return array(
+    public static function getTreeSpecies($region)
+    {
+        return [
             'Schwarz-Pappel',
             'Erle',
             'Bergulme',
             'Feldahorn',
             'Sal-Weide',
-        );
+        ];
     }
 }

@@ -5,12 +5,12 @@
  */
 function baumspenden_menu()
 {
-    $items['baumspende'] = array(
+    $items['baumspende'] = [
         'title' => 'Baumspende',
         'page callback' => 'drupal_get_form',
-        'page arguments' => array('baumspenden_donation'),
-        'access arguments' => array('access baumspenden donation form'),
-    );
+        'page arguments' => ['baumspenden_donation'],
+        'access arguments' => ['access baumspenden donation form'],
+    ];
 
     return $items;
 }
@@ -25,150 +25,154 @@ function baumspenden_menu()
  */
 function baumspenden_donation($form, &$form_state)
 {
-    $form['amount'] = array(
+    $form['amount'] = [
         '#type' => 'textfield',
         '#title' => 'Ich spende',
         '#description' => 'Für mehr als 100 Bäume und Unternehmensspenden kontaktieren Sie uns bitte unter <a href="mailto:baumspende@bergwaldprojekt.de">baumspende@bergwaldprojekt.de</a>',
         '#field_suffix' => 'Baum/Bäume',
         '#required' => true,
-    );
+    ];
 
-    $form['plant_info'] = array(
+    $form['plant_info'] = [
         '#prefix' => '<div id="baumspenden-plant-info">',
         '#suffix' => '</div>',
-    );
+    ];
 
-    $form['plant_info']['plant_period'] = array(
+    $form['plant_info']['plant_period'] = [
         '#type' => 'select',
         '#title' => 'Pflanzperiode',
         '#options' => DrupalBaumspendenConfig::getPlantPeriods(),
         '#empty_option' => '- Auswählen -',
         '#required' => true,
-        '#ajax' => array(
+        '#ajax' => [
             'wrapper' => 'baumspenden-plant-info',
             'callback' => '_baumspenden_donation_plant_info',
-        ),
-    );
+        ],
+    ];
 
     if (isset($form_state['values']['plant_period'])) {
-        $form['plant_info']['plant_region'] = array(
+        $form['plant_info']['plant_region'] = [
             '#type' => 'select',
             '#title' => 'Region',
             '#options' => DrupalBaumspendenConfig::getPlantRegions(
                 $form_state['values']['plant_period']
             ),
             '#required' => true,
-            '#ajax' => array(
+            '#ajax' => [
                 'wrapper' => 'baumspenden-plant-info',
                 'callback' => '_baumspenden_donation_plant_info',
-            ),
-        );
+            ],
+        ];
     }
     if (isset($form_state['values']['plant_region'])) {
-        $form['plant_info']['plant_tree'] = array(
+        $form['plant_info']['plant_tree'] = [
             '#type' => 'select',
             '#title' => 'Baumart',
             '#options' => DrupalBaumspendenConfig::getTreeSpecies(
                 $form_state['values']['plant_period']
             ),
             '#required' => true,
-        );
+        ];
     }
-    $form['plant_info']['update'] = array(
+    $form['plant_info']['update'] = [
         '#type' => 'submit',
         '#value' => t('Update'),
-        '#attributes' => array(
-            'class' => array(
+        '#attributes' => [
+            'class' => [
                 'hide-js',
-            ),
-        ),
-        '#attached' => array(
-            'css' => array(
-                drupal_get_path('module', 'baumspenden') . '/css/baumspende.css',
-            ),
-        ),
-        '#limit_validation_errors' => array(
-            array('plant_period'),
-            array('plant_region'),
-        ),
-        '#submit' => array(
+            ],
+        ],
+        '#attached' => [
+            'css' => [
+                drupal_get_path(
+                    'module',
+                    'baumspenden'
+                ) . '/css/baumspende.css',
+            ],
+        ],
+        '#limit_validation_errors' => [
+            ['plant_period'],
+            ['plant_region'],
+        ],
+        '#submit' => [
             'baumspenden_donation_submit',
-        ),
-    );
+        ],
+    ];
 
-    $form['contact'] = array(
+    $form['contact'] = [
         '#type' => 'fieldset',
         '#title' => 'Meine Kontaktdaten',
-    );
-    $form['contact']['first_name'] = array(
+    ];
+    $form['contact']['first_name'] = [
         '#type' => 'textfield',
         '#title' => 'Vorname',
         '#required' => true,
-    );
-    $form['contact']['last_name'] = array(
+    ];
+    $form['contact']['last_name'] = [
         '#type' => 'textfield',
         '#title' => 'Nachname',
         '#required' => true,
-    );
-    $form['contact']['street_address'] = array(
+    ];
+    $form['contact']['street_address'] = [
         '#type' => 'textfield',
         '#title' => 'Straße, Hausnummer',
         '#required' => true,
-    );
-    $form['contact']['postal_code'] = array(
+    ];
+    $form['contact']['postal_code'] = [
         '#type' => 'textfield',
         '#title' => 'Postleitzahl',
         '#required' => true,
-    );
-    $form['contact']['city'] = array(
+    ];
+    $form['contact']['city'] = [
         '#type' => 'textfield',
         '#title' => 'Ort',
         '#required' => true,
-    );
-    $form['contact']['email'] = array(
+    ];
+    $form['contact']['email'] = [
         '#type' => 'textfield',
         '#title' => 'E-Mail-Adresse',
         '#required' => true,
-    );
+    ];
 
-    $form['shipping_mode'] = array(
+    $form['shipping_mode'] = [
         '#type' => 'select',
         '#title' => 'Versandoption',
-        '#options' => array(
+        '#options' => [
             'email' => 'als PDF per E-Mail',
             'postal' => 'postalisch',
             'none' => 'kein Zertifikat',
-        ),
-    );
-    $form['certificate_name'] = array(
+        ],
+    ];
+    $form['certificate_name'] = [
         '#type' => 'textfield',
         '#title' => 'Name auf Zertifikat',
         '#description' => 'max. 40 Zeichen',
-    );
+    ];
 
-    $form['newsletter'] = array(
+    $form['newsletter'] = [
         '#type' => 'checkbox',
         '#title' => 'Newsletter abonnieren',
         '#description' => 'Newsletter mit aktuellen Themen rund um das Bergwaldprojekt',
-    );
-    $form['gdpr_consent'] = array(
+    ];
+    $form['gdpr_consent'] = [
         '#type' => 'checkbox',
         '#title' => 'Datenschutz',
         '#description' => 'Ich habe die <a href="' . variable_get(
                 'baumspenden_gdpr_link',
                 '/datenschutz'
             ) . '" target="_blank">Datenschutzerklärung</a> gelesen und akzeptiere diese.',
-    );
+    ];
 
-    $form['submit'] = array(
+    $form['submit'] = [
         '#type' => 'submit',
         '#value' => 'Vorschau',
-    );
+    ];
 
     return $form;
 }
 
-function baumspenden_donation_submit($form, &$form_state) {
+function baumspenden_donation_submit($form, &$form_state)
+{
     switch ($form_state['triggering_element']['#value']) {
         case $form['submit']['#value']:
             // TODO: Process form.
@@ -179,6 +183,7 @@ function baumspenden_donation_submit($form, &$form_state) {
     }
 }
 
-function _baumspenden_donation_plant_info($form) {
+function _baumspenden_donation_plant_info($form)
+{
     return $form['plant_info'];
 }
