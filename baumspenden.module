@@ -31,13 +31,15 @@ function baumspenden_donation($form, &$form_state)
         '#description' => 'Für mehr als 100 Bäume und Unternehmensspenden kontaktieren Sie uns bitte unter <a href="mailto:baumspende@bergwaldprojekt.de">baumspende@bergwaldprojekt.de</a>',
         '#field_suffix' => 'Baum/Bäume',
         '#required' => true,
+        '#element_validate' => [
+            'element_validate_integer_positive',
+        ],
     ];
 
     $form['plant_info'] = [
         '#prefix' => '<div id="baumspenden-plant-info">',
         '#suffix' => '</div>',
     ];
-
     $form['plant_info']['plant_period'] = [
         '#type' => 'select',
         '#title' => 'Pflanzperiode',
@@ -49,7 +51,6 @@ function baumspenden_donation($form, &$form_state)
             'callback' => '_baumspenden_donation_plant_info',
         ],
     ];
-
     if (isset($form_state['values']['plant_period'])) {
         $form['plant_info']['plant_region'] = [
             '#type' => 'select',
@@ -90,10 +91,12 @@ function baumspenden_donation($form, &$form_state)
                 ) . '/css/baumspende.css',
             ],
         ],
+        // Only validate related fields.
         '#limit_validation_errors' => [
             ['plant_period'],
             ['plant_region'],
         ],
+        // Required when using #limit_validation_errors.
         '#submit' => [
             'baumspenden_donation_submit',
         ],
@@ -143,10 +146,15 @@ function baumspenden_donation($form, &$form_state)
             'none' => 'kein Zertifikat',
         ],
     ];
+
     $form['certificate_name'] = [
         '#type' => 'textfield',
         '#title' => 'Name auf Zertifikat',
         '#description' => 'max. 40 Zeichen',
+        '#attributes' => [
+            'placeholder' => 'Waldmariechen',
+        ],
+        '#maxlength' => 40,
     ];
 
     $form['newsletter'] = [
@@ -154,6 +162,7 @@ function baumspenden_donation($form, &$form_state)
         '#title' => 'Newsletter abonnieren',
         '#description' => 'Newsletter mit aktuellen Themen rund um das Bergwaldprojekt',
     ];
+
     $form['gdpr_consent'] = [
         '#type' => 'checkbox',
         '#title' => 'Datenschutz',
@@ -161,9 +170,13 @@ function baumspenden_donation($form, &$form_state)
                 'baumspenden_gdpr_link',
                 '/datenschutz'
             ) . '" target="_blank">Datenschutzerklärung</a> gelesen und akzeptiere diese.',
+        '#required' => true,
     ];
 
-    $form['submit'] = [
+    $form['actions'] = [
+        '#type' => 'actions',
+    ];
+    $form['actions']['submit'] = [
         '#type' => 'submit',
         '#value' => 'Vorschau',
     ];
@@ -171,18 +184,52 @@ function baumspenden_donation($form, &$form_state)
     return $form;
 }
 
+/**
+ * Validates form submissions for the "baumspenden_donation" form.
+ *
+ * @param $form
+ * @param $form_state
+ */
+function baumspenden_donation_validate($form, &$form_state)
+{
+    // Require a valid e-mail address.
+    if (!valid_email_address($form_state['values']['email'])) {
+        form_set_error(
+            'email',
+            'Bitte geben Sie eine gültige E-Mail-Adresse ein.'
+        );
+    }
+}
+
+/**
+ * Processes form submissions for the "baumspenden_donation" form.
+ *
+ * @param $form
+ * @param $form_state
+ */
 function baumspenden_donation_submit($form, &$form_state)
 {
+    // Depend on which element trigered the submission.
     switch ($form_state['triggering_element']['#value']) {
-        case $form['submit']['#value']:
+        case $form['actions']['submit']['#value']:
+            // Regular form submission.
             // TODO: Process form.
             break;
         case $form['plant_info']['update']['#value']:
+            // Updating plant info fields. Simply rebuild the form.
             $form_state['rebuild'] = true;
             break;
     }
 }
 
+/**
+ * Returns plant info elements of the "baumspenden_donation" form to be replaced
+ * by an Ajax request.
+ *
+ * @param $form
+ *
+ * @return mixed
+ */
 function _baumspenden_donation_plant_info($form)
 {
     return $form['plant_info'];
