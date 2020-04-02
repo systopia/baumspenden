@@ -66,11 +66,7 @@ function baumspenden_donation($form, &$form_state)
                 ],
             ];
 
-            // Save values in the storage for later use.
-            if (isset($form_state['values']['donations'][$key]['plant_info']['plant_period'])) {
-                $form_state['storage']['donations'][$key]['plant_info']['plant_period'] = $form_state['values']['donations'][$key]['plant_info']['plant_period'];
-            }
-            if (isset($form_state['storage']['donations'][$key]['plant_info']['plant_period'])) {
+           if (isset($form_state['storage']['donations'][$key]['plant_info']['plant_period'])) {
                 $form['donations'][$key]['plant_info']['plant_region'] = [
                     '#type' => 'select',
                     '#title' => 'Region',
@@ -85,10 +81,6 @@ function baumspenden_donation($form, &$form_state)
                 ];
             }
 
-            // Save values in the storage for later use.
-            if (isset($form_state['values']['donations'][$key]['plant_info']['plant_region'])) {
-                $form_state['storage']['donations'][$key]['plant_info']['plant_region'] = $form_state['values']['donations'][$key]['plant_info']['plant_region'];
-            }
             if (isset($form_state['storage']['donations'][$key]['plant_info']['plant_region'])) {
                 $form['donations'][$key]['plant_info']['plant_tree'] = [
                     '#type' => 'select',
@@ -102,6 +94,8 @@ function baumspenden_donation($form, &$form_state)
             $form['donations'][$key]['plant_info']['update'] = [
                 '#type' => 'submit',
                 '#baumspenden_op' => 'update_plant_info',
+                // Distinctly identify button for this donation.
+                '#name' => 'baumspenden_plant_info_' . $key,
                 '#value' => t('Update'),
                 '#attributes' => [
                     'class' => [
@@ -116,11 +110,8 @@ function baumspenden_donation($form, &$form_state)
                         ) . '/css/baumspende.css',
                     ],
                 ],
-                // Only validate related fields.
-                '#limit_validation_errors' => [
-                    ['donations', $key, 'plant_info', 'plant_period'],
-                    ['donations', $key, 'plant_info', 'plant_region'],
-                ],
+                // Do not validate anything (Ajax-like behavior).
+                '#limit_validation_errors' => [],
                 // #submit is required when using #limit_validation_errors.
                 '#submit' => [
                     'baumspenden_donation_submit',
@@ -132,6 +123,8 @@ function baumspenden_donation($form, &$form_state)
                 $form['donations'][$key]['remove'] = [
                     '#type' => 'submit',
                     '#baumspenden_op' => 'remove_donation',
+                    // Distinctly identify button for this donation.
+                    '#name' => 'baumspenden_remove_donation_' . $key,
                     '#value' => t('Remove'),
                     // Do not validate anything.
                     '#limit_validation_errors' => [],
@@ -261,6 +254,46 @@ function baumspenden_donation_validate($form, &$form_state)
             'email',
             'Bitte geben Sie eine gültige E-Mail-Adresse ein.'
         );
+    }
+
+    // Handle hierarchically dependent submissions of plant info fields.
+    foreach (element_children($form['donations']) as $key) {
+        if (is_numeric($key)) {
+            $submitted_plant_info = &$form_state['values']['donations'][$key]['plant_info'];
+
+            // Plant period field changes.
+            if (
+                isset($submitted_plant_info['plant_period'])
+                && isset($form_state['storage']['donations'][$key]['plant_info']['plant_period'])
+                && $submitted_plant_info['plant_period'] != $form_state['storage']['donations'][$key]['plant_info']['plant_period']
+            ) {
+                if (isset($form['donations'][$key]['plant_info']['plant_region'])) {
+                    // Reset dependent field for plant region.
+                    form_set_value($form['donations'][$key]['plant_info']['plant_region'], null, $form_state);
+                }
+                if (isset($form['donations'][$key]['plant_info']['plant_tree'])) {
+                    // Reset dependent field for tree species.
+                    form_set_value($form['donations'][$key]['plant_info']['plant_tree'], null, $form_state);
+                }
+            }
+
+            // Plant region field changes.
+            if (
+                isset($submitted_plant_info['plant_region'])
+                && isset($Form_state['storage']['donations'][$key]['plant_info']['plant_region'])
+                && $submitted_plant_info['plant_region'] != $form_state['storage']['donations'][$key]['plant_info']['plant_period']
+            ) {
+                if ($submitted_plant_info['plant_region'] != $form_state['storage']['donations'][$key]['plant_info']['plant_period']) {
+                    if (isset($form['donations'][$key]['plant_info']['plant_tree'])) {
+                        // Reset dependent field for tree species.
+                        form_set_value($form['donations'][$key]['plant_info']['plant_tree'], null, $form_state);
+                    }
+                }
+            }
+
+            // Save updated plant info field values in the storage.
+            $form_state['storage']['donations'][$key]['plant_info'] = $submitted_plant_info;
+        }
     }
 }
 
