@@ -66,7 +66,7 @@ function baumspenden_donation($form, &$form_state)
                 ],
             ];
 
-           if (isset($form_state['storage']['donations'][$key]['plant_info']['plant_period'])) {
+            if (isset($form_state['storage']['donations'][$key]['plant_info']['plant_period'])) {
                 $form['donations'][$key]['plant_info']['plant_region'] = [
                     '#type' => 'select',
                     '#title' => 'Region',
@@ -269,11 +269,19 @@ function baumspenden_donation_validate($form, &$form_state)
             ) {
                 if (isset($form['donations'][$key]['plant_info']['plant_region'])) {
                     // Reset dependent field for plant region.
-                    form_set_value($form['donations'][$key]['plant_info']['plant_region'], null, $form_state);
+                    form_set_value(
+                        $form['donations'][$key]['plant_info']['plant_region'],
+                        null,
+                        $form_state
+                    );
                 }
                 if (isset($form['donations'][$key]['plant_info']['plant_tree'])) {
                     // Reset dependent field for tree species.
-                    form_set_value($form['donations'][$key]['plant_info']['plant_tree'], null, $form_state);
+                    form_set_value(
+                        $form['donations'][$key]['plant_info']['plant_tree'],
+                        null,
+                        $form_state
+                    );
                 }
             }
 
@@ -286,7 +294,11 @@ function baumspenden_donation_validate($form, &$form_state)
                 if ($submitted_plant_info['plant_region'] != $form_state['storage']['donations'][$key]['plant_info']['plant_period']) {
                     if (isset($form['donations'][$key]['plant_info']['plant_tree'])) {
                         // Reset dependent field for tree species.
-                        form_set_value($form['donations'][$key]['plant_info']['plant_tree'], null, $form_state);
+                        form_set_value(
+                            $form['donations'][$key]['plant_info']['plant_tree'],
+                            null,
+                            $form_state
+                        );
                     }
                 }
             }
