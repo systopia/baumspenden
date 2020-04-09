@@ -119,6 +119,16 @@ function baumspenden_donation($form, &$form_state)
                 '#baumspenden_donation_key' => $key,
             ];
 
+            $form['donations'][$key]['certificate_name'] = [
+                '#type' => 'textfield',
+                '#title' => 'Name auf Zertifikat',
+                '#description' => 'max. 40 Zeichen',
+                '#attributes' => [
+                    'placeholder' => 'Waldmariechen',
+                ],
+                '#maxlength' => 40,
+            ];
+
             if ($key != 0) {
                 $form['donations'][$key]['remove'] = [
                     '#type' => 'submit',
@@ -200,16 +210,6 @@ function baumspenden_donation($form, &$form_state)
             'postal' => 'postalisch',
             'none' => 'kein Zertifikat',
         ],
-    ];
-
-    $form['certificate_name'] = [
-        '#type' => 'textfield',
-        '#title' => 'Name auf Zertifikat',
-        '#description' => 'max. 40 Zeichen',
-        '#attributes' => [
-            'placeholder' => 'Waldmariechen',
-        ],
-        '#maxlength' => 40,
     ];
 
     $form['newsletter'] = [
