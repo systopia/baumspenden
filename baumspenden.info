@@ -18,3 +18,5 @@ core = 7.x
 version = 7.x-1.x-dev
 
 files[] = includes/baumspenden.config.inc
+files[] = includes/baumspenden.baumspende.inc
+files[] = includes/baumspenden.donation_form.inc

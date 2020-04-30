@@ -331,11 +331,6 @@ function baumspenden_donation_submit($form, &$form_state)
 {
     // Depend on which element trigered the submission.
     switch ($form_state['triggering_element']['#baumspenden_op']) {
-        case 'preview':
-            // Preview (next step)
-            $form_state['storage'] = $form_state['values'];
-            // TODO: Process form.
-            break;
         case 'update_plant_info':
             // Updating plant info fields. Simply rebuild the form.
             $form_state['rebuild'] = true;
@@ -350,6 +345,13 @@ function baumspenden_donation_submit($form, &$form_state)
             $key = $form_state['triggering_element']['#baumspenden_donation_key'];
             unset($form_state['storage']['donations'][$key]);
             $form_state['rebuild'] = true;
+            break;
+        case 'preview':
+            // Preview (next step)
+            form_state_values_clean($form_state);
+            $form_state['storage'] = $form_state['values'];
+            DrupalBaumspendenDonationForm::process($form_state['storage']);
+            // TODO: Process newsletter request.
             break;
     }
 }
