@@ -1,3 +1,4 @@
+<?php
 /*-------------------------------------------------------+
 | Bergwaldprojekt Baumspenden                            |
 | Copyright (C) 2010 SYSTOPIA                            |
@@ -11,6 +12,10 @@
 | written permission from the original author(s).        |
 +--------------------------------------------------------*/
 
-html.js .hide-js {
-  display: none;
+/**
+ * Class DrupalBaumspendenBaumspende
+ */
+class DrupalBaumspendenBaumspende
+{
+
 }
