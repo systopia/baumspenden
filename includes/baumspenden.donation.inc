@@ -104,7 +104,7 @@ class DrupalBaumspendenDonation
         $result = $query->execute();
         if (
             !isset($result['commerce_product'])
-            || count($result['commerce_product']) == 1
+            || count($result['commerce_product']) != 1
         ) {
             throw new Exception(
                 t(

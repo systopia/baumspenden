@@ -429,6 +429,7 @@ function baumspenden_commerce_product_type_info()
 {
     $product_types = [];
 
+    // Add a product type for Baumspende donations.
     $product_types['baumspende'] = [
         'type' => 'baumspende',
         'name' => 'Baumspende',
