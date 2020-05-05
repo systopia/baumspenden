@@ -278,8 +278,8 @@ function baumspenden_donation_validate($form, &$form_state)
 {
     // Require a valid e-mail address.
     if (!valid_email_address($form_state['values']['contact']['email'])) {
-        form_set_error(
-            'email',
+        form_error(
+            $form['contact']['email'],
             'Bitte geben Sie eine gültige E-Mail-Adresse ein.'
         );
     }
@@ -319,20 +319,39 @@ function baumspenden_donation_validate($form, &$form_state)
                 && isset($Form_state['storage']['donations'][$key]['plant_info']['plant_region'])
                 && $submitted_plant_info['plant_region'] != $form_state['storage']['donations'][$key]['plant_info']['plant_period']
             ) {
-                if ($submitted_plant_info['plant_region'] != $form_state['storage']['donations'][$key]['plant_info']['plant_period']) {
-                    if (isset($form['donations'][$key]['plant_info']['plant_tree'])) {
-                        // Reset dependent field for tree species.
-                        form_set_value(
-                            $form['donations'][$key]['plant_info']['plant_tree'],
-                            null,
-                            $form_state
-                        );
-                    }
+                if (isset($form['donations'][$key]['plant_info']['plant_tree'])) {
+                    // Reset dependent field for tree species.
+                    form_set_value(
+                        $form['donations'][$key]['plant_info']['plant_tree'],
+                        null,
+                        $form_state
+                    );
                 }
             }
 
             // Save updated plant info field values in the storage.
-            $form_state['storage']['donations'][$key]['plant_info'] = $submitted_plant_info;
+            $form_state['storage']['donations'][$key]['plant_info'] = $form_state['values']['donations'][$key]['plant_info'];
+
+            // Validate whether product exists with given plant info.
+            // This should never be necessary, since available plant information
+            // is being retrieved from existing Drupal Commerce products, but we
+            // are better avoiding invalid form submissions.
+            if (
+                !empty($form_state['values']['donations'][$key]['plant_info']['plant_period'])
+                && !empty($form_state['values']['donations'][$key]['plant_info']['plant_region'])
+                && !empty($form_state['values']['donations'][$key]['plant_info']['plant_tree'])
+            ) {
+                try {
+                    DrupalBaumspendenDonation::getCommerceProduct(
+                        $submitted_plant_info
+                    );
+                } catch (Exception $exception) {
+                    form_error(
+                        $form['donations'][$key]['plant_info'],
+                        $exception->getMessage()
+                    );
+                }
+            }
         }
     }
 }

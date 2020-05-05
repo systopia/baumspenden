@@ -74,12 +74,52 @@ class DrupalBaumspendenDonation
     }
 
     /**
-     * TODO: Retrieves the Drupal Commerce Product for the given donation
-     * criteria.
+     * Retrieves the Drupal Commerce Product for the given donation criteria.
      */
-    public static function getCommerceProduct()
+    public static function getCommerceProduct($plant_info)
     {
-        // TODO: Use EntityMetadataWrapper for retrieving a product by its plant info properties.
-        // $product = commerce_product_load($product_id);
+        $query = new EntityFieldQuery();
+        $query
+            ->entityCondition('entity_type', 'commerce_product')
+            ->entityCondition('bundle', 'baumspende')
+            ->propertyCondition('status', 1)
+            ->fieldCondition(
+                'baumspenden_plant_region',
+                'value',
+                $plant_info['plant_region'],
+                '='
+            )
+            ->fieldCondition(
+                'baumspenden_plant_period',
+                'value',
+                $plant_info['plant_period'],
+                '='
+            )
+            ->fieldCondition(
+                'baumspenden_plant_tree',
+                'value',
+                $plant_info['plant_tree'],
+                '='
+            );
+        $result = $query->execute();
+        if (
+            !isset($result['commerce_product'])
+            || count($result['commerce_product']) == 1
+        ) {
+            throw new Exception(
+                t(
+                    'Found none or more than one baumspende products with given properties: !properties',
+                    [
+                        '!properties' => print_r($plant_info, true),
+                    ]
+                )
+            );
+        } else {
+            $product = commerce_product_load(
+                key($result['commerce_product'])
+            );
+        }
+
+        return $product;
     }
 }

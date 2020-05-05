@@ -65,11 +65,11 @@ class DrupalBaumspendenConfig
     public static function getTreeSpecies($region)
     {
         return [
-            'Schwarz-Pappel',
-            'Erle',
-            'Bergulme',
-            'Feldahorn',
-            'Sal-Weide',
+            'schwarz-pappel' => 'Schwarz-Pappel',
+            'erle' => 'Erle',
+            'bergulme' => 'Bergulme',
+            'feldahorn' => 'Feldahorn',
+            'sal-weide' => 'Sal-Weide',
         ];
     }
 }

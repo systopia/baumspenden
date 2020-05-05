@@ -59,7 +59,7 @@ class DrupalBaumspendenOrder
     public function addDonations($donations)
     {
         foreach ($donations as $donation) {
-            $product = $donation->getCommerceProduct();
+            $product = self::getCommerceProduct($this->getPlantInfo());
             $line_item = commerce_product_line_item_new(
                 $product,
                 $donation->getAmount(),
