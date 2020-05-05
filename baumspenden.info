@@ -17,6 +17,10 @@ core = 7.x
 
 version = 7.x-1.x-dev
 
+dependencies[] = commerce:commerce_order
+dependencies[] = commerce:commerce_checkout
+
 files[] = includes/baumspenden.config.inc
-files[] = includes/baumspenden.baumspende.inc
 files[] = includes/baumspenden.donation_form.inc
+files[] = includes/baumspenden.donation.inc
+files[] = includes/baumspenden.order.inc

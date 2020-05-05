@@ -15,7 +15,7 @@
 /**
  * Class DrupalBaumspendenBaumspende
  */
-class DrupalBaumspendenBaumspende
+class DrupalBaumspendenDonation
 {
     /**
      * @var int
@@ -50,16 +50,36 @@ class DrupalBaumspendenBaumspende
     }
 
     /**
-     * TODO: Create a Drupal Commerce Order for this donation.
+     * @return int
      */
-    public function order() {
-
+    public function getAmount(): int
+    {
+        return $this->amount;
     }
 
     /**
-     * TODO: Retrieves the Drupal Commerce Product for the given donation criteria.
+     * @return array
      */
-    public static function getCommerceProduct() {
-        // TODO: Use EntityMetadataWrapper for retrieving a product by its properties.
+    public function getPlantInfo(): array
+    {
+        return $this->plant_info;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCertificateName(): string
+    {
+        return $this->certificate_name;
+    }
+
+    /**
+     * TODO: Retrieves the Drupal Commerce Product for the given donation
+     * criteria.
+     */
+    public static function getCommerceProduct()
+    {
+        // TODO: Use EntityMetadataWrapper for retrieving a product by its plant info properties.
+        // $product = commerce_product_load($product_id);
     }
 }

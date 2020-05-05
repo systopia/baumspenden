@@ -34,10 +34,10 @@ function baumspenden_permission()
 {
     $permissions = [];
 
-    $permissions['access baumspenden donation form'] = array(
+    $permissions['access baumspenden donation form'] = [
         'title' => t('Acces Baumspenden donation form'),
         'description' => t('Views and submit Baumspenden donation form'),
-    );
+    ];
 
     return $permissions;
 }
@@ -197,6 +197,7 @@ function baumspenden_donation($form, &$form_state)
     $form['contact'] = [
         '#type' => 'fieldset',
         '#title' => 'Meine Kontaktdaten',
+        '#tree' => true,
     ];
     $form['contact']['first_name'] = [
         '#type' => 'textfield',
@@ -276,7 +277,7 @@ function baumspenden_donation($form, &$form_state)
 function baumspenden_donation_validate($form, &$form_state)
 {
     // Require a valid e-mail address.
-    if (!valid_email_address($form_state['values']['email'])) {
+    if (!valid_email_address($form_state['values']['contact']['email'])) {
         form_set_error(
             'email',
             'Bitte geben Sie eine gültige E-Mail-Adresse ein.'

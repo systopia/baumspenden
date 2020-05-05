@@ -19,16 +19,16 @@ class DrupalBaumspendenDonationForm
 {
     public static function process($storage)
     {
+        $donations = [];
         foreach ($storage['donations'] as $key => $donation_data) {
-            if (is_numeric($key)) {
-                $donation = new DrupalBaumspendenBaumspende(
-                    $donation_data['amount'],
-                    $donation_data['plant_info'],
-                    $donation_data['certificate_name']
-                );
-
-                // TODO: Create Commerce Order and checkout.
-            }
+            $donations[] = new DrupalBaumspendenDonation(
+                $donation_data['amount'],
+                $donation_data['plant_info'],
+                $donation_data['certificate_name']
+            );
         }
+
+        $order = new DrupalBaumspendenOrder($donations, $storage['contact']);
+        $order->checkout();
     }
 }
