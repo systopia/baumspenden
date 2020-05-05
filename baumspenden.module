@@ -113,7 +113,8 @@ function baumspenden_donation($form, &$form_state)
                     '#type' => 'select',
                     '#title' => 'Baumart',
                     '#options' => DrupalBaumspendenConfig::getTreeSpecies(
-                        $form_state['storage']['donations'][$key]['plant_info']['plant_period']
+                        $form_state['storage']['donations'][$key]['plant_info']['plant_period'],
+                        $form_state['storage']['donations'][$key]['plant_info']['plant_region']
                     ),
                     '#required' => true,
                 ];
