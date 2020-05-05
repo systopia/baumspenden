@@ -41,14 +41,10 @@ class DrupalBaumspendenOrder
         $this->order = commerce_order_new(0, 'checkout_checkout');
         $this->order_wrapper = entity_metadata_wrapper(
             'commerce_order',
-            $order
+            $this->order
         );
-
         $this->addDonations($donations);
-
-        $this->addCustomerProfile();
-
-        commerce_order_save($this->order);
+        $this->addCustomerProfile($customer_data);
     }
 
     /**
@@ -82,17 +78,29 @@ class DrupalBaumspendenOrder
     {
         $customer_profile = commerce_customer_profile_new(
             'billing',
-            $order->uid
+            $this->order->uid
         );
         $customer_profile_wrapper = entity_metadata_wrapper(
             'commerce_customer_profile',
             $customer_profile
         );
-        // TODO: Set customer profile properties.
-        $customer_profile_wrapper->commerce_customer_address->country = $submitted_values['billing_country'];
 
+        // Set customer profile properties.
+        foreach (
+            [
+                'first_name' => 'first_name',
+                'last_name' => 'last_name',
+                'street_adress' => 'thoroughfare',
+                'postal_code' => 'postal_code',
+                'city' => 'locality',
+            ] as $key => $property
+        ) {
+            if (!empty($customer_data[$key])) {
+                $customer_profile_wrapper->commerce_customer_address->$property = $customer_data[$key];
+            }
+        }
         commerce_customer_profile_save($customer_profile);
-        $order_wrapper->commerce_customer_billing = $customer_profile->profile_id;
+        $this->order_wrapper->commerce_customer_billing = $customer_profile->profile_id;
 
         commerce_order_save($this->order);
     }
