@@ -84,15 +84,15 @@ class DrupalBaumspendenDonation
             ->entityCondition('bundle', 'baumspende')
             ->propertyCondition('status', 1)
             ->fieldCondition(
-                'baumspenden_plant_region',
-                'value',
-                $plant_info['plant_region'],
-                '='
-            )
-            ->fieldCondition(
                 'baumspenden_plant_period',
                 'value',
                 $plant_info['plant_period'],
+                '='
+            )
+            ->fieldCondition(
+                'baumspenden_plant_region',
+                'value',
+                $plant_info['plant_region'],
                 '='
             )
             ->fieldCondition(

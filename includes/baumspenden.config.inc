@@ -25,7 +25,34 @@ class DrupalBaumspendenConfig
     public static function getPlantPeriods()
     {
         $field_info = field_info_field('baumspenden_plant_period');
-        return $field_info['settings']['allowed_values'];
+        // Filter for periods on active products.
+        $table = _field_sql_storage_tablename($field_info);
+        $column = _field_sql_storage_columnname(
+            'baumspenden_plant_period',
+            'value'
+        );
+        $query = db_select(
+            $table,
+            'field'
+        );
+        $query->leftJoin(
+            'commerce_product',
+            'product',
+            'product.product_id = field.entity_id'
+        );
+        $query
+            ->fields('field', [$column])
+            ->condition('field.entity_type', 'commerce_product')
+            ->condition('field.bundle', 'baumspende')
+            ->condition('field.deleted', 0)
+            ->condition('product.status', 1)
+            ->groupBy($column);
+        $used_values = array_fill_keys($query->execute()->fetchCol(), true);
+
+        return array_intersect_key(
+            $field_info['settings']['allowed_values'],
+            $used_values
+        );
     }
 
     /**
@@ -38,8 +65,8 @@ class DrupalBaumspendenConfig
      */
     public static function getPlantRegions($period)
     {
-        // TODO: Retrieve depending on given region.
         $field_info = field_info_field('baumspenden_plant_region');
+        // TODO: Filter for regions on active products with given period.
         return $field_info['settings']['allowed_values'];
     }
 
@@ -53,8 +80,8 @@ class DrupalBaumspendenConfig
      */
     public static function getTreeSpecies($period, $region)
     {
-        // TODO: Retrieve depending on given region.
         $field_info = field_info_field('baumspenden_plant_tree');
+        // TODO: Filter for trees on active products with given period and region.
         return $field_info['settings']['allowed_values'];
     }
 }
