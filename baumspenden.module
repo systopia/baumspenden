@@ -28,6 +28,21 @@ function baumspenden_menu()
 }
 
 /**
+ * Implements hook_permission().
+ */
+function baumspenden_permission()
+{
+    $permissions = [];
+
+    $permissions['access baumspenden donation form'] = array(
+        'title' => t('Acces Baumspenden donation form'),
+        'description' => t('Views and submit Baumspenden donation form'),
+    );
+
+    return $permissions;
+}
+
+/**
  * Builds the "baumspenden_donation" form.
  *
  * @param $form
