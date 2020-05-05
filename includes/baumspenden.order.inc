@@ -38,7 +38,8 @@ class DrupalBaumspendenOrder
      */
     public function __construct($donations = [], $customer_data = [])
     {
-        $this->order = commerce_order_new(0, 'checkout_checkout');
+        global $user;
+        $this->order = commerce_order_new($user->uid, 'checkout_checkout');
         $this->order_wrapper = entity_metadata_wrapper(
             'commerce_order',
             $this->order
@@ -55,7 +56,7 @@ class DrupalBaumspendenOrder
     public function addDonations($donations)
     {
         foreach ($donations as $donation) {
-            $product = self::getCommerceProduct($this->getPlantInfo());
+            $product = DrupalBaumspendenDonation::getCommerceProduct($donation->getPlantInfo());
             $line_item = commerce_product_line_item_new(
                 $product,
                 $donation->getAmount(),
