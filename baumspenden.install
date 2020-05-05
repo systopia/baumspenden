@@ -1,0 +1,48 @@
+<?php
+/*-------------------------------------------------------+
+| Bergwaldprojekt Baumspenden                            |
+| Copyright (C) 2010 SYSTOPIA                            |
++--------------------------------------------------------+
+| This program is released as free software under the    |
+| Affero GPL license. You can redistribute it and/or     |
+| modify it under the terms of this license which you    |
+| can read by viewing the included agpl.txt or online    |
+| at www.gnu.org/licenses/agpl.html. Removal of this     |
+| copyright header is strictly prohibited without        |
+| written permission from the original author(s).        |
++--------------------------------------------------------*/
+
+/**
+ * Implements hook_install().
+ */
+function baumspenden_install()
+{
+    // Create product fields and instances.
+    foreach (
+        [
+            'plant_period' => t('Plant period'),
+            'plant_region' => t('Plant region'),
+            'plant_tree' => t('Tree species'),
+        ] as $field_name => $field_label
+    ) {
+        if (!field_info_field('baumspenden_' . $field_name)) {
+            $field_info = [
+                'field_name' => 'baumspenden_' . $field_name,
+                'type' => 'list_text',
+            ];
+            field_create_field($field_info);
+        }
+        $instance = [
+            'field_name' => 'baumspenden_' . $field_name,
+            'entity_type' => 'commerce_product',
+            'bundle' => 'baumspende',
+            'label' => $field_label,
+            'required' => true,
+            'settings' => [],
+            'widget' => [
+                'type' => 'options_select',
+            ],
+        ];
+        field_create_instance($instance);
+    }
+}

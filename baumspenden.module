@@ -401,3 +401,19 @@ function _baumspenden_donation_donations($form, &$form_state)
 {
     return $form['donations'];
 }
+
+/**
+ * Implements hook_commerce_product_type_info().
+ */
+function baumspenden_commerce_product_type_info()
+{
+    $product_types = [];
+
+    $product_types['baumspende'] = [
+        'type' => 'baumspende',
+        'name' => 'Baumspende',
+        'description' => 'Baumspende',
+    ];
+
+    return $product_types;
+}
