@@ -25,33 +25,9 @@ class DrupalBaumspendenConfig
     public static function getPlantPeriods()
     {
         $field_info = field_info_field('baumspenden_plant_period');
-        // Filter for periods on active products.
-        $table = _field_sql_storage_tablename($field_info);
-        $column = _field_sql_storage_columnname(
-            'baumspenden_plant_period',
-            'value'
-        );
-        $query = db_select(
-            $table,
-            'field'
-        );
-        $query->leftJoin(
-            'commerce_product',
-            'product',
-            'product.product_id = field.entity_id'
-        );
-        $query
-            ->fields('field', [$column])
-            ->condition('field.entity_type', 'commerce_product')
-            ->condition('field.bundle', 'baumspende')
-            ->condition('field.deleted', 0)
-            ->condition('product.status', 1)
-            ->groupBy($column);
-        $used_values = array_fill_keys($query->execute()->fetchCol(), true);
-
         return array_intersect_key(
             $field_info['settings']['allowed_values'],
-            $used_values
+            self::getUsedPlantInfoFieldValues('baumspenden_plant_period')
         );
     }
 
@@ -59,29 +35,113 @@ class DrupalBaumspendenConfig
      * Retrieves all available plant regions for a given plant period from the
      * configuration.
      *
-     * @param $period
+     * @param $period_value
      *
      * @return array
      */
-    public static function getPlantRegions($period)
+    public static function getPlantRegions($period_value)
     {
         $field_info = field_info_field('baumspenden_plant_region');
-        // TODO: Filter for regions on active products with given period.
-        return $field_info['settings']['allowed_values'];
+        return array_intersect_key(
+            $field_info['settings']['allowed_values'],
+            self::getUsedPlantInfoFieldValues(
+                'baumspenden_plant_region',
+                [
+                    'baumspenden_plant_period' => $period_value,
+                ]
+            )
+        );
     }
 
     /**
-     * Retrieves all available tree species for a given plant region from the
-     * configuration.
+     * Retrieves all available tree species for a given combination of plant
+     * period and plant region from the configuration.
      *
      * @param $region
      *
      * @return array
      */
-    public static function getTreeSpecies($period, $region)
+    public static function getTreeSpecies($period_value, $region_value)
     {
         $field_info = field_info_field('baumspenden_plant_tree');
-        // TODO: Filter for trees on active products with given period and region.
-        return $field_info['settings']['allowed_values'];
+        return array_intersect_key(
+            $field_info['settings']['allowed_values'],
+            self::getUsedPlantInfoFieldValues(
+                'baumspenden_plant_tree',
+                [
+                    'baumspenden_plant_period' => $period_value,
+                    'baumspenden_plant_region' => $region_value,
+                ]
+            )
+        );
+    }
+
+    /**
+     * Retrieves field values being used by Baumspende products, optionally
+     * filtered by other field values being used on the same product.
+     *
+     * Example:
+     * For the field "baumspenden_plant_tree", this returns all values already
+     * used in this field on Commerce Product entities. When also given the
+     * following as dependency fields:
+     * [
+     *   'baumspenden_plant_period' => 'spring',
+     *   'baumspenden_plant_region' => 'middle_east',
+     * ]
+     * this returns only those used field values for "baumspenden_plant_tree"
+     * that are being used with the given field values on the same product, i.e.
+     * when a combination of those two dependency fields exists on at least one
+     * product.
+     *
+     * @param $field_name
+     *   The Drupal field name to retrieve used values for.
+     * @param array $dependency_fields
+     *   An array of other field values being present on the same product, keyed
+     *   by the Drupal field name.
+     *
+     * @return array
+     *   The available field values for the given critera as keys.
+     */
+    protected static function getUsedPlantInfoFieldValues(
+        $field_name,
+        $dependency_fields = []
+    ) {
+        $field_info = field_info_field($field_name);
+        // Filter for periods on active products.
+        $table = _field_sql_storage_tablename($field_info);
+        $column = _field_sql_storage_columnname(
+            $field_name,
+            'value'
+        );
+        $query = db_select($table, 'field');
+        $query->leftJoin(
+            'commerce_product',
+            'product',
+            'product.product_id = field.entity_id'
+        );
+        foreach ($dependency_fields as $dependency_field => $dependency_value) {
+            $dependency_field_info = field_info_field($dependency_field);
+            $query->leftJoin(
+                _field_sql_storage_tablename($dependency_field_info),
+                $dependency_field,
+                $dependency_field . '.entity_id = product.product_id'
+            );
+            $query->condition(
+                $dependency_field . '.' . _field_sql_storage_columnname(
+                    $dependency_field,
+                    'value'
+                ),
+                $dependency_value
+            );
+        }
+        $query
+            ->fields('field', [$column])
+            ->condition('field.entity_type', 'commerce_product')
+            ->condition('field.bundle', 'baumspende')
+            ->condition('field.deleted', 0)
+            ->condition('product.status', 1)
+            ->groupBy($column);
+
+        return array_fill_keys($query->execute()->fetchCol(), true);
     }
 }
