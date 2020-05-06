@@ -91,7 +91,7 @@ class DrupalBaumspendenOrder
             [
                 'first_name' => 'first_name',
                 'last_name' => 'last_name',
-                'street_adress' => 'thoroughfare',
+                'street_address' => 'thoroughfare',
                 'postal_code' => 'postal_code',
                 'city' => 'locality',
             ] as $key => $property
@@ -100,6 +100,11 @@ class DrupalBaumspendenOrder
                 $customer_profile_wrapper->commerce_customer_address->$property = $customer_data[$key];
             }
         }
+        // Addressfield tampers with first_name and last_name if name_line is
+        // set (it is set to the empty string). Setting it therefore to NULL.
+        // @see addressfield_field_presave().
+        $customer_profile_wrapper->commerce_customer_address->name_line = null;
+
         commerce_customer_profile_save($customer_profile);
         $this->order_wrapper->commerce_customer_billing = $customer_profile->profile_id;
 
