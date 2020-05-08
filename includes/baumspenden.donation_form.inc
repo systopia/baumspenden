@@ -259,18 +259,27 @@ class DrupalBaumspendenDonationForm
         $form['presentee']['first_name'] = [
             '#type' => 'textfield',
             '#title' => 'Vorname',
-            '#required' => true,
+            '#states' => [
+                'required' => [
+                    ':input[name="as_present"]' => ['checked' => true],
+                ],
+            ],
         ];
         $form['presentee']['last_name'] = [
             '#type' => 'textfield',
             '#title' => 'Nachname',
-            '#required' => true,
+            '#states' => [
+                'required' => [
+                    ':input[name="as_present"]' => ['checked' => true],
+                ],
+            ],
         ];
         $form['presentee']['street_address'] = [
             '#type' => 'textfield',
             '#title' => 'Straße, Hausnummer',
             '#states' => [
                 'required' => [
+                    ':input[name="as_present"]' => ['checked' => true],
                     ':input[name="shipping_mode"]' => ['value' => 'postal'],
                 ],
             ],
@@ -280,6 +289,7 @@ class DrupalBaumspendenDonationForm
             '#title' => 'Postleitzahl',
             '#states' => [
                 'required' => [
+                    ':input[name="as_present"]' => ['checked' => true],
                     ':input[name="shipping_mode"]' => ['value' => 'postal'],
                 ],
             ],
@@ -289,6 +299,7 @@ class DrupalBaumspendenDonationForm
             '#title' => 'Ort',
             '#states' => [
                 'required' => [
+                    ':input[name="as_present"]' => ['checked' => true],
                     ':input[name="shipping_mode"]' => ['value' => 'postal'],
                 ],
             ],
@@ -298,6 +309,7 @@ class DrupalBaumspendenDonationForm
             '#title' => 'E-Mail-Adresse',
             '#states' => [
                 'required' => [
+                    ':input[name="as_present"]' => ['checked' => true],
                     ':input[name="shipping_mode"]' => ['value' => 'email'],
                 ],
             ],
@@ -568,19 +580,54 @@ class DrupalBaumspendenDonationForm
      */
     public static function isStatesRequired($element, &$form_state)
     {
-        $required_field_key = key($element['#states']['required']);
-        // TODO: Not really clean, but works for selectors like
-        //       :input[name="field_name"]
-        $required_field = explode('"', $required_field_key);
-        $required_field_parents = preg_split(
-            '/\]?\[/',
-            rtrim($required_field[1], ']')
-        );
-        $required_field_value = drupal_array_get_nested_value(
-            $form_state['values'],
-            $required_field_parents
-        );
-        return $form_state['values'][$required_field[1]] == $element['#states']['required'][$required_field_key]['value'];
+        foreach ($element['#states']['required'] as $required_field_key => $conditions) {
+            $required_field = explode('"', $required_field_key);
+            $required_field_parents = preg_split(
+                '/\]?\[/',
+                rtrim($required_field[1], ']')
+            );
+            foreach ($conditions as $type => $condition) {
+                switch ($type) {
+                    case 'value':
+                        $required_field_value = drupal_array_get_nested_value(
+                            $form_state['values'],
+                            $required_field_parents
+                        );
+                        $this_matched = $form_state['values'][$required_field[1]] == $element['#states']['required'][$required_field_key]['value'];
+                        if (!isset($matched)) {
+                            $matched = $this_matched;
+                        } else {
+                            $matched = $matched && $this_matched;
+                        }
+                        break;
+                    case 'checked':
+                        $required_field_value = drupal_array_get_nested_value(
+                            $form_state['values'],
+                            $required_field_parents
+                        );
+                        // Unchecked checkboxes have an integer value of 0,
+                        // whereas a string value of "0" might be a valid value.
+                        $this_matched = ($condition == ($required_field_value !== 0));
+                        if (!isset($matched)) {
+                            $matched = $this_matched;
+                        } else {
+                            $matched = $matched && $this_matched;
+                        }
+                        break;
+                    /* TODO: Add cases for the following states:
+                     *     - empty
+                     *     - filled
+                     *     - checked
+                     *     - unchecked
+                     *     - expanded
+                     *     - collapsed
+                     *     - value
+                     */
+                }
+            }
+        }
+
+        return (isset($matched) && $matched);
     }
 
     /**
