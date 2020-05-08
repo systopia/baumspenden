@@ -30,6 +30,12 @@ class DrupalBaumspendenDonationForm
         $form['#after_build'] = [
             ['DrupalBaumspendenDonationForm', 'addRequiredStatesValidation'],
         ];
+        $form['#validate'] = [
+            ['DrupalBaumspendenDonationForm', 'validate'],
+        ];
+        $form['#submit'] = [
+            ['DrupalBaumspendenDonationForm', 'submit'],
+        ];
 
         $form['donations'] = [
             '#type' => 'fieldset',
@@ -127,7 +133,7 @@ class DrupalBaumspendenDonationForm
                     '#limit_validation_errors' => [],
                     // #submit is required when using #limit_validation_errors.
                     '#submit' => [
-                        'baumspenden_donation_submit',
+                        ['DrupalBaumspendenDonationForm', 'submit'],
                     ],
                     '#baumspenden_donation_key' => $key,
                 ];
@@ -153,7 +159,7 @@ class DrupalBaumspendenDonationForm
                         '#limit_validation_errors' => [],
                         // #submit is required when using #limit_validation_errors.
                         '#submit' => [
-                            'baumspenden_donation_submit',
+                            ['DrupalBaumspendenDonationForm', 'submit'],
                         ],
                         '#ajax' => [
                             'wrapper' => 'baumspenden-donations',
@@ -175,7 +181,7 @@ class DrupalBaumspendenDonationForm
             '#limit_validation_errors' => [],
             // #submit is required when using #limit_validation_errors.
             '#submit' => [
-                'baumspenden_donation_submit',
+                ['DrupalBaumspendenDonationForm', 'submit'],
             ],
             '#ajax' => [
                 'wrapper' => 'baumspenden-donations',

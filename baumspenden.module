@@ -43,38 +43,21 @@ function baumspenden_permission()
 }
 
 /**
- * Builds the "baumspenden_donation" form.
- *
- * @param $form
- * @param $form_state
- *
- * @return mixed
+ * Implements hook_forms().
  */
-function baumspenden_donation($form, &$form_state)
+function baumspenden_forms($form_id, $args)
 {
-    return DrupalBaumspendenDonationForm::build($form, $form_state);
-}
-
-/**
- * Validates form submissions for the "baumspenden_donation" form.
- *
- * @param $form
- * @param $form_state
- */
-function baumspenden_donation_validate($form, &$form_state)
-{
-    DrupalBaumspendenDonationForm::validate($form, $form_state);
-}
-
-/**
- * Processes form submissions for the "baumspenden_donation" form.
- *
- * @param $form
- * @param $form_state
- */
-function baumspenden_donation_submit($form, &$form_state)
-{
-    DrupalBaumspendenDonationForm::submit($form, $form_state);
+    $forms['baumspenden_donation'] = array(
+        // This will call: DrupalBaumspendenDonationForm::build().
+        'callback' => array(
+            'DrupalBaumspendenDonationForm',
+            'build',
+        ),
+        // The base_form_id is required when the callback is a static function in
+        // a class. This can also be used to keep newer code backwards compatible.
+        'base_form_id' => 'baumspenden_donation',
+    );
+    return $forms;
 }
 
 /**
