@@ -57,9 +57,14 @@ class DrupalBaumspendenConfig
      * Retrieves all available tree species for a given combination of plant
      * period and plant region from the configuration.
      *
-     * @param $region
+     * @param string $period_value
+     *   The plant_period to retrieve tree species for.
+     *
+     * @param string $region_value
+     *   The plant_region to retieve tree species for.
      *
      * @return array
+     *   The tree species values available for the given criteria.
      */
     public static function getTreeSpecies($period_value, $region_value)
     {
@@ -137,7 +142,7 @@ class DrupalBaumspendenConfig
         $query
             ->fields('field', [$column])
             ->condition('field.entity_type', 'commerce_product')
-            ->condition('field.bundle', 'baumspende')
+            ->condition('field.bundle', DrupalBaumspendenDonation::PRODUCT_TYPE)
             ->condition('field.deleted', 0)
             ->condition('product.status', 1)
             ->groupBy($column);

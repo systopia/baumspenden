@@ -18,6 +18,12 @@
 class DrupalBaumspendenDonation
 {
     /**
+     * Machine-readable name of the product type to use for Baumspenden
+     * products.
+     */
+    public const PRODUCT_TYPE = 'baumspende';
+
+    /**
      * @var int
      */
     protected $amount;
@@ -75,13 +81,25 @@ class DrupalBaumspendenDonation
 
     /**
      * Retrieves the Drupal Commerce Product for the given donation criteria.
+     *
+     * @param array $plant_info
+     *   An array with plant information with the following keys:
+     *   - "plant_period"
+     *   - "plant_region"
+     *   - "plant_tree"
+     *
+     * @throws \Exception
+     *   When the Commerce product could not be identified.
+     *
+     * @return
+     *   The associated Commerce product
      */
     public static function getCommerceProduct($plant_info)
     {
         $query = new EntityFieldQuery();
         $query
             ->entityCondition('entity_type', 'commerce_product')
-            ->entityCondition('bundle', 'baumspende')
+            ->entityCondition('bundle', self::PRODUCT_TYPE)
             ->propertyCondition('status', 1)
             ->fieldCondition(
                 'baumspenden_plant_period',

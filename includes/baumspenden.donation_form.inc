@@ -487,10 +487,23 @@ class DrupalBaumspendenDonationForm
                 break;
             case 'preview':
                 // Preview (next step)
+                // TODO.
+                // break;
+            case 'submit':
                 form_state_values_clean($form_state);
                 $form_state['storage'] = $form_state['values'];
-                DrupalBaumspendenDonationForm::process($form_state['storage']);
-                // TODO: Process newsletter request.
+                try {
+                    DrupalBaumspendenDonationForm::process(
+                        $form_state['storage']
+                    );
+                } catch (Exception $exception) {
+                    watchdog_exception('baumspenden', $exception);
+                    drupal_set_message(
+                        t('There was an error processing the form.'),
+                        'error'
+                    );
+                    $form_state['rebuild'] = true;
+                }
                 break;
         }
     }
@@ -499,9 +512,16 @@ class DrupalBaumspendenDonationForm
      * Processes final submissions of the donation form.
      *
      * @param $storage
+     *
+     * @throws \Exception
+     *   When the form could not be processed.
      */
     public static function process($storage)
     {
+        // TODO: Process newsletter request.
+        // TODO: Process presentee data.
+
+        // Process donations.
         $donations = [];
         foreach ($storage['donations'] as $key => $donation_data) {
             $donations[] = new DrupalBaumspendenDonation(
@@ -523,6 +543,9 @@ class DrupalBaumspendenDonationForm
      *
      * @param array $element
      *   The form or form element to process.
+     *
+     * @return array
+     *   The potentially altered form element.
      */
     public static function addRequiredStatesValidation($element)
     {

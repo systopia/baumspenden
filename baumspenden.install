@@ -35,7 +35,7 @@ function baumspenden_install()
         $instance = [
             'field_name' => 'baumspenden_' . $field_name,
             'entity_type' => 'commerce_product',
-            'bundle' => 'baumspende',
+            'bundle' => DrupalBaumspendenDonation::PRODUCT_TYPE,
             'label' => $field_label,
             'required' => true,
             'settings' => [],

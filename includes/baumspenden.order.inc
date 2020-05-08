@@ -35,6 +35,9 @@ class DrupalBaumspendenOrder
      * @param \DrupalBaumspendenDonation[] $donations
      *
      * @param array $customer_data
+     *
+     * @throws \Exception
+     *   When the order could not be created.
      */
     public function __construct($donations = [], $customer_data = [])
     {
@@ -52,11 +55,16 @@ class DrupalBaumspendenOrder
      * Adds donation product line items to the Drupal Commerce order.
      *
      * @param \DrupalBaumspendenDonation[] $donations
+     *
+     * @throws \Exception
+     *   When the donations could not be added to the order.
      */
     public function addDonations($donations)
     {
         foreach ($donations as $donation) {
-            $product = DrupalBaumspendenDonation::getCommerceProduct($donation->getPlantInfo());
+            $product = DrupalBaumspendenDonation::getCommerceProduct(
+                $donation->getPlantInfo()
+            );
             $line_item = commerce_product_line_item_new(
                 $product,
                 $donation->getAmount(),
