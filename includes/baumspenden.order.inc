@@ -18,6 +18,11 @@
 class DrupalBaumspendenOrder
 {
     /**
+     * Machine-readable name of the order type to use for Baumspenden orders.
+     */
+    public const ORDER_TYPE = 'baumspende';
+
+    /**
      * @var $order
      *   The Drupal Commerce order object.
      */
@@ -36,19 +41,29 @@ class DrupalBaumspendenOrder
      *
      * @param array $customer_data
      *
+     * @param array $presentee_data
+     *
      * @throws \Exception
      *   When the order could not be created.
      */
-    public function __construct($donations = [], $customer_data = [])
-    {
+    public function __construct(
+        $donations = [],
+        $customer_data = [],
+        $presentee_data = []
+    ) {
         global $user;
-        $this->order = commerce_order_new($user->uid, 'checkout_checkout');
+        $this->order = commerce_order_new(
+            $user->uid,
+            'checkout_checkout',
+            DrupalBaumspendenOrder::ORDER_TYPE
+        );
         $this->order_wrapper = entity_metadata_wrapper(
             'commerce_order',
             $this->order
         );
         $this->addDonations($donations);
         $this->addCustomerProfile($customer_data);
+        $this->addPresenteeAddress($presentee_data);
     }
 
     /**
@@ -115,6 +130,34 @@ class DrupalBaumspendenOrder
 
         commerce_customer_profile_save($customer_profile);
         $this->order_wrapper->commerce_customer_billing = $customer_profile->profile_id;
+
+        commerce_order_save($this->order);
+    }
+
+    /**
+     * Fills the presentee field on the Drupal Commerce order.
+     *
+     * @param array $presentee_data
+     */
+    public function addPresenteeAddress($presentee_data)
+    {
+        foreach (
+            [
+                'first_name' => 'first_name',
+                'last_name' => 'last_name',
+                'street_address' => 'thoroughfare',
+                'postal_code' => 'postal_code',
+                'city' => 'locality',
+            ] as $key => $property
+        ) {
+            if (!empty($presentee_data[$key])) {
+                $this->order_wrapper->{DrupalBaumspendenConfig::FIELD_NAME_PRESENTEE}->$property = $presentee_data[$key];
+            }
+        }
+        // Addressfield tampers with first_name and last_name if name_line is
+        // set (it is set to the empty string). Setting it therefore to NULL.
+        // @see addressfield_field_presave().
+        $this->order_wrapper->{DrupalBaumspendenConfig::FIELD_NAME_PRESENTEE}->name_line = null;
 
         commerce_order_save($this->order);
     }

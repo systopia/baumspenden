@@ -45,4 +45,47 @@ function baumspenden_install()
         ];
         field_create_instance($instance);
     }
+
+    // Create "Baumspende" order type and add an addressfield for presentee
+    // data.
+    $order_type = [
+        'type' => DrupalBaumspendenOrder::ORDER_TYPE,
+        'name' => 'Baumspendenbestellung',
+        'is_new' => true,
+    ];
+    commerce_order_types_commerce_order_type_save($order_type);
+    // Add default fields to the order type.
+    commerce_order_configure_order_type($order_type['type']);
+
+    if (!field_info_field(DrupalBaumspendenConfig::FIELD_NAME_PRESENTEE)) {
+        $field_info = [
+            'field_name' => DrupalBaumspendenConfig::FIELD_NAME_PRESENTEE,
+            'type' => 'addressfield',
+        ];
+        field_create_field($field_info);
+    }
+    $instance = [
+        'field_name' => DrupalBaumspendenConfig::FIELD_NAME_PRESENTEE,
+        'entity_type' => 'commerce_order',
+        'bundle' => DrupalBaumspendenOrder::ORDER_TYPE,
+        'label' => 'Beschenkter',
+        'required' => false,
+        'widget' => [
+            'type' => 'addressfield_standard',
+            'settings' => [
+                'available_countries' => [],
+                // Can't use variable_get('site_default_country') here because it would
+                // set the value in stone. Instead, the site_default option allows the
+                // default country to always reflect the current site setting.
+                'default_country' => 'site_default',
+                'format_handlers' => [
+                    'address',
+                    'address-hide-administrative-area',
+                    'address-hide-country',
+                    'name-full',
+                ],
+            ],
+        ],
+    ];
+    field_create_instance($instance);
 }

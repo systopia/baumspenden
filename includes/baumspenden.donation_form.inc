@@ -531,7 +531,16 @@ class DrupalBaumspendenDonationForm
             );
         }
 
-        $order = new DrupalBaumspendenOrder($donations, $storage['contact']);
+        // Create an order with donations and contact data.
+        if (!isset($storage['presentee'])) {
+            $storage['presentee'] = [];
+        }
+        // TODO: Pass and process e-mail address(es).
+        $order = new DrupalBaumspendenOrder(
+            $donations,
+            $storage['contact'],
+            $storage['presentee']
+        );
         $order->checkout();
     }
 

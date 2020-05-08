@@ -17,6 +17,8 @@
  */
 class DrupalBaumspendenConfig
 {
+    public const FIELD_NAME_PRESENTEE = 'baumspenden_presentee';
+
     /**
      * Retrieves all available plant regions from the configuration.
      *
