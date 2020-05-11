@@ -519,7 +519,6 @@ class DrupalBaumspendenDonationForm
     public static function process($storage)
     {
         // TODO: Process newsletter request.
-        // TODO: Process presentee data.
 
         // Process donations.
         $donations = [];
@@ -545,8 +544,8 @@ class DrupalBaumspendenDonationForm
     }
 
     /**
-     * Adds an #element_validate callback for validating conditional "required"
-     * states added via #states.
+     * Adds an #element_validate callback for validating conditionally required
+     * form elements according to their #states definition.
      *
      * This is called as an #after_build callback for the donation form.
      *
@@ -579,7 +578,7 @@ class DrupalBaumspendenDonationForm
     }
 
     /**
-     * Validates conditionally required elements according to their #states
+     * Validates conditionally required form elements according to their #states
      * definition.
      *
      * @param $element
@@ -607,7 +606,8 @@ class DrupalBaumspendenDonationForm
     }
 
     /**
-     * Checks whether an element is required due to its #states definition.
+     * Checks whether a form element is required according to its #states
+     * definition.
      *
      * @param $element
      *   The form element to check for requiredness.
@@ -619,6 +619,9 @@ class DrupalBaumspendenDonationForm
     public static function isStatesRequired($element, &$form_state)
     {
         foreach ($element['#states']['required'] as $required_field_key => $conditions) {
+            // TODO: This only covers selectors like :input[name="field_name"],
+            //   i.e. where the field name is the first occurence of text
+            //   wrapped in double quotes (").
             $required_field = explode('"', $required_field_key);
             $required_field_parents = preg_split(
                 '/\]?\[/',
@@ -655,7 +658,6 @@ class DrupalBaumspendenDonationForm
                     /* TODO: Add cases for the following states:
                      *     - empty
                      *     - filled
-                     *     - checked
                      *     - unchecked
                      *     - expanded
                      *     - collapsed
