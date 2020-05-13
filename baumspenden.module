@@ -76,3 +76,31 @@ function baumspenden_commerce_product_type_info()
 
     return $product_types;
 }
+
+/**
+ * Implements hook_commerce_cart_product_add().
+ */
+function baumspenden_commerce_cart_product_add($order, $product, $quantity, $line_item) {
+  if ($product->type != DrupalBaumspendenDonation::PRODUCT_TYPE) {
+    $order_altered = FALSE;
+    foreach (
+      entity_metadata_wrapper(
+        'commerce_order',
+        $order
+      )->commerce_line_items as $delta => $order_line_item_wrapper
+    ) {
+      $order_product = commerce_product_load($order_line_item_wrapper->commerce_product->raw());
+      if ($order_product->type == DrupalBaumspendenDonation::PRODUCT_TYPE) {
+        commerce_cart_order_product_line_item_delete(
+          $order,
+          $order_line_item_wrapper->line_item_id->raw(),
+          TRUE
+        );
+        $order_altered = TRUE;
+      }
+    }
+    if ($order_altered) {
+      commerce_order_save($order);
+    }
+  }
+}
