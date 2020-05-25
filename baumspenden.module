@@ -101,6 +101,7 @@ function baumspenden_commerce_cart_product_add($order, $product, $quantity, $lin
     }
     if ($order_altered) {
       commerce_order_save($order);
+      drupal_set_message('Since products and tree donations cannot be ordered simultaneously, the tree donation(s) have been removed from your cart.');
     }
   }
 }
