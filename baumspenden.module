@@ -78,40 +78,55 @@ function baumspenden_commerce_product_type_info()
 }
 
 /**
- * Implements hook_commerce_cart_product_add().
+ * Implements hook_commerce_cart_order_is_cart_alter().
  */
-function baumspenden_commerce_cart_product_add(
-    $order,
-    $product,
-    $quantity,
-    $line_item
-) {
-    if ($product->type != DrupalBaumspendenDonation::PRODUCT_TYPE) {
-        $order_altered = false;
-        foreach (
-            entity_metadata_wrapper(
-                'commerce_order',
-                $order
-            )->commerce_line_items as $delta => $order_line_item_wrapper
-        ) {
-            $order_product = commerce_product_load(
-                $order_line_item_wrapper->commerce_product->raw()
+function baumspenden_commerce_cart_order_is_cart_alter(&$is_cart, $order)
+{
+    if ($order->type == DrupalBaumspendenOrder::ORDER_TYPE) {
+        $is_cart = false;
+    }
+}
+
+/**
+ * Implements hook_commerce_cart_order_id().
+ */
+function baumspenden_commerce_cart_order_id($uid)
+{
+    // Find an order with a "cart" status but exclude "Baumspenden" order types.
+    global $user;
+    $status_ids = array_keys(commerce_order_statuses(['cart' => true]));
+    $query = new EntityFieldQuery();
+    $query
+        ->entityCondition('entity_type', 'commerce_order')
+        ->entityCondition('bundle', DrupalBaumspendenOrder::ORDER_TYPE, '!=')
+        ->propertyCondition('status', $status_ids, 'IN')
+        ->propertyOrderBy('order_id', 'DESC');
+    if ($user->uid) {
+        // For authenticated users, find orders with their uid.
+        $query->propertyCondition('uid', $user->uid);
+    } elseif (commerce_cart_order_session_exists()) {
+        // For anonymous users, find orders stored in their session.
+        $query
+            ->propertyCondition('uid', 0)
+            ->propertyCondition(
+                'order_id',
+                commerce_cart_order_session_order_ids(),
+                'IN'
             );
-            if ($order_product->type == DrupalBaumspendenDonation::PRODUCT_TYPE) {
-                commerce_cart_order_product_line_item_delete(
-                    $order,
-                    $order_line_item_wrapper->line_item_id->raw(),
-                    true
-                );
-                $order_altered = true;
-            }
-        }
-        if ($order_altered) {
-            commerce_order_save($order);
-            drupal_set_message(
-                'Since products and tree donations cannot be ordered simultaneously, the tree donation(s) have been removed from your cart.'
-            );
-        }
+    }
+    $result = $query->execute();
+    if (!isset($result['commerce_order'])) {
+        // There is no current cart order, create a new cart.
+        $commerce_order = commerce_cart_order_new($user->uid);
+    } else {
+        // There is at least one current cart order, select the latest one.
+        $commerce_order = reset($result['commerce_order']);
+    }
+
+    commerce_cart_order_session_save($commerce_order->order_id);
+    return (int)$commerce_order->order_id;
+}
+
 /**
  * Implements hook_commerce_checkout_complete().
  */
