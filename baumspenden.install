@@ -88,4 +88,6 @@ function baumspenden_install()
         ],
     ];
     field_create_instance($instance);
+
+    // TODO: Add e-mail fields on customer profile and order.
 }

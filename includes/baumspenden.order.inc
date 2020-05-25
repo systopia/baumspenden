@@ -67,13 +67,16 @@ class DrupalBaumspendenOrder
         $customer_data = [],
         $presentee_data = []
     ) {
+        // Create a Drupal Commerce order.
         global $user;
         $commerce_order = commerce_order_new(
             $user->uid,
             'checkout_checkout',
             self::ORDER_TYPE
         );
+        commerce_order_save($commerce_order);
 
+        // Add properties.
         $order = new self($commerce_order->order_id);
         $order->addDonations($donations);
         $order->addCustomerProfile($customer_data);
@@ -144,6 +147,8 @@ class DrupalBaumspendenOrder
         // @see addressfield_field_presave().
         $customer_profile_wrapper->commerce_customer_address->name_line = null;
 
+        // TODO: Set e-mail address field(s) (created in .install).
+
         commerce_customer_profile_save($customer_profile);
         $this->order_wrapper->commerce_customer_billing = $customer_profile->profile_id;
 
@@ -187,5 +192,12 @@ class DrupalBaumspendenOrder
             'Since products and tree donations cannot be ordered simultaneously, a new order has been created for your tree donation(s). Any products previously added to your cart remain in a separate order and will be available again after checking out this tree donation order.'
         );
         drupal_goto('checkout/' . $this->order->order_id);
+    }
+
+    /**
+     * Perform steps when the Drupal Commerce order has completed checkout.
+     */
+    public function complete() {
+        // TODO: Send to CiviCRM API.
     }
 }

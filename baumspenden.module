@@ -112,5 +112,14 @@ function baumspenden_commerce_cart_product_add(
                 'Since products and tree donations cannot be ordered simultaneously, the tree donation(s) have been removed from your cart.'
             );
         }
+/**
+ * Implements hook_commerce_checkout_complete().
+ */
+function baumspenden_commerce_checkout_complete($commerce_order)
+{
+    // Process Baumspenden orders
+    if ($commerce_order->type == DrupalBaumspendenOrder::ORDER_TYPE) {
+        $order = new DrupalBaumspendenOrder($commerce_order->order_id);
+        $order->complete();
     }
 }
