@@ -47,16 +47,16 @@ function baumspenden_permission()
  */
 function baumspenden_forms($form_id, $args)
 {
-    $forms['baumspenden_donation'] = array(
+    $forms['baumspenden_donation'] = [
         // This will call: DrupalBaumspendenDonationForm::build().
-        'callback' => array(
+        'callback' => [
             'DrupalBaumspendenDonationForm',
             'build',
-        ),
+        ],
         // The base_form_id is required when the callback is a static function in
         // a class. This can also be used to keep newer code backwards compatible.
         'base_form_id' => 'baumspenden_donation',
-    );
+    ];
     return $forms;
 }
 
@@ -80,28 +80,37 @@ function baumspenden_commerce_product_type_info()
 /**
  * Implements hook_commerce_cart_product_add().
  */
-function baumspenden_commerce_cart_product_add($order, $product, $quantity, $line_item) {
-  if ($product->type != DrupalBaumspendenDonation::PRODUCT_TYPE) {
-    $order_altered = FALSE;
-    foreach (
-      entity_metadata_wrapper(
-        'commerce_order',
-        $order
-      )->commerce_line_items as $delta => $order_line_item_wrapper
-    ) {
-      $order_product = commerce_product_load($order_line_item_wrapper->commerce_product->raw());
-      if ($order_product->type == DrupalBaumspendenDonation::PRODUCT_TYPE) {
-        commerce_cart_order_product_line_item_delete(
-          $order,
-          $order_line_item_wrapper->line_item_id->raw(),
-          TRUE
-        );
-        $order_altered = TRUE;
-      }
+function baumspenden_commerce_cart_product_add(
+    $order,
+    $product,
+    $quantity,
+    $line_item
+) {
+    if ($product->type != DrupalBaumspendenDonation::PRODUCT_TYPE) {
+        $order_altered = false;
+        foreach (
+            entity_metadata_wrapper(
+                'commerce_order',
+                $order
+            )->commerce_line_items as $delta => $order_line_item_wrapper
+        ) {
+            $order_product = commerce_product_load(
+                $order_line_item_wrapper->commerce_product->raw()
+            );
+            if ($order_product->type == DrupalBaumspendenDonation::PRODUCT_TYPE) {
+                commerce_cart_order_product_line_item_delete(
+                    $order,
+                    $order_line_item_wrapper->line_item_id->raw(),
+                    true
+                );
+                $order_altered = true;
+            }
+        }
+        if ($order_altered) {
+            commerce_order_save($order);
+            drupal_set_message(
+                'Since products and tree donations cannot be ordered simultaneously, the tree donation(s) have been removed from your cart.'
+            );
+        }
     }
-    if ($order_altered) {
-      commerce_order_save($order);
-      drupal_set_message('Since products and tree donations cannot be ordered simultaneously, the tree donation(s) have been removed from your cart.');
-    }
-  }
 }

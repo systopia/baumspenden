@@ -183,7 +183,9 @@ class DrupalBaumspendenOrder
      */
     public function checkout()
     {
-        drupal_set_message('Since products and tree donations cannot be ordered simultaneously, a new order has been created for your tree donation(s). Any products previously added to your cart remain in a separate order and will be available again after checking out this tree donation order.');
+        drupal_set_message(
+            'Since products and tree donations cannot be ordered simultaneously, a new order has been created for your tree donation(s). Any products previously added to your cart remain in a separate order and will be available again after checking out this tree donation order.'
+        );
         drupal_goto('checkout/' . $this->order->order_id);
     }
 }

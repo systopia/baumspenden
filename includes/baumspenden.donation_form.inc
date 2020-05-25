@@ -541,6 +541,7 @@ class DrupalBaumspendenDonationForm
             $storage['presentee']
         );
         $order->checkout();
+        // Checkout issues a redirect, therefore, we're done here.
     }
 
     /**
