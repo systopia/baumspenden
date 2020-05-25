@@ -37,33 +37,49 @@ class DrupalBaumspendenOrder
     /**
      * DrupalBaumspendenOrder constructor.
      *
+     * @param $order_id
+     *   The Drupal commerce order ID to wrap this object around.
+     */
+    public function __construct($order_id)
+    {
+        $this->order = commerce_order_load($order_id);
+        $this->order_wrapper = entity_metadata_wrapper(
+            'commerce_order',
+            $this->order
+        );
+    }
+
+    /**
      * @param \DrupalBaumspendenDonation[] $donations
      *
      * @param array $customer_data
      *
      * @param array $presentee_data
      *
+     * @return \DrupalBaumspendenOrder
+     *   The order object.
+     *
      * @throws \Exception
      *   When the order could not be created.
      */
-    public function __construct(
+    public static function create(
         $donations = [],
         $customer_data = [],
         $presentee_data = []
     ) {
         global $user;
-        $this->order = commerce_order_new(
+        $commerce_order = commerce_order_new(
             $user->uid,
             'checkout_checkout',
-            DrupalBaumspendenOrder::ORDER_TYPE
+            self::ORDER_TYPE
         );
-        $this->order_wrapper = entity_metadata_wrapper(
-            'commerce_order',
-            $this->order
-        );
-        $this->addDonations($donations);
-        $this->addCustomerProfile($customer_data);
-        $this->addPresenteeAddress($presentee_data);
+
+        $order = new self($commerce_order->order_id);
+        $order->addDonations($donations);
+        $order->addCustomerProfile($customer_data);
+        $order->addPresenteeAddress($presentee_data);
+
+        return $order;
     }
 
     /**

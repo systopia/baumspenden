@@ -535,7 +535,7 @@ class DrupalBaumspendenDonationForm
             $storage['presentee'] = [];
         }
         // TODO: Pass and process e-mail address(es).
-        $order = new DrupalBaumspendenOrder(
+        $order = DrupalBaumspendenOrder::create(
             $donations,
             $storage['contact'],
             $storage['presentee']
