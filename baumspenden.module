@@ -98,7 +98,11 @@ function baumspenden_commerce_cart_order_id($uid)
     $query = new EntityFieldQuery();
     $query
         ->entityCondition('entity_type', 'commerce_order')
-        ->entityCondition('bundle', DrupalBaumspendenOrder::ORDER_TYPE, '!=')
+        ->entityCondition(
+            'bundle',
+            DrupalBaumspendenOrder::ORDER_TYPE,
+            '!='
+        )
         ->propertyCondition('status', $status_ids, 'IN')
         ->propertyOrderBy('order_id', 'DESC');
     if ($user->uid) {
