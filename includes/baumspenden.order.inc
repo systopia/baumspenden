@@ -197,7 +197,8 @@ class DrupalBaumspendenOrder
     /**
      * Perform steps when the Drupal Commerce order has completed checkout.
      */
-    public function complete() {
+    public function complete()
+    {
         // TODO: Send to CiviCRM API.
     }
 }

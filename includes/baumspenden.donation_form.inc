@@ -213,6 +213,7 @@ class DrupalBaumspendenDonationForm
             '#states' => [
                 'required' => [
                     ':input[name="shipping_mode"]' => ['value' => 'postal'],
+                    ':input[name="presentee_shipping"]' => ['checked' => false],
                 ],
             ],
         ];
@@ -222,6 +223,7 @@ class DrupalBaumspendenDonationForm
             '#states' => [
                 'required' => [
                     ':input[name="shipping_mode"]' => ['value' => 'postal'],
+                    ':input[name="presentee_shipping"]' => ['checked' => false],
                 ],
             ],
         ];
@@ -231,6 +233,7 @@ class DrupalBaumspendenDonationForm
             '#states' => [
                 'required' => [
                     ':input[name="shipping_mode"]' => ['value' => 'postal'],
+                    ':input[name="presentee_shipping"]' => ['checked' => false],
                 ],
             ],
         ];
@@ -240,6 +243,7 @@ class DrupalBaumspendenDonationForm
             '#states' => [
                 'required' => [
                     ':input[name="shipping_mode"]' => ['value' => 'email'],
+                    ':input[name="presentee_shipping"]' => ['checked' => false],
                 ],
             ],
         ];
@@ -248,6 +252,18 @@ class DrupalBaumspendenDonationForm
             '#type' => 'checkbox',
             '#title' => 'Als Geschenk',
             '#description' => 'Ich möchte das Zertifikat verschenken.',
+        ];
+        $form['presentee_shipping'] = [
+            '#type' => 'checkbox',
+            '#title' => 'An Beschenkte/n versenden',
+            '#description' => 'Das Zertifikat soll direkt an die/den Beschenkte/n versendet werden.',
+            '#states' => [
+                'visible' => [
+                    ':input[name="as_present"]' => [
+                        'checked' => true,
+                    ],
+                ],
+            ],
         ];
 
         $form['presentee'] = [
@@ -287,6 +303,7 @@ class DrupalBaumspendenDonationForm
                 'required' => [
                     ':input[name="as_present"]' => ['checked' => true],
                     ':input[name="shipping_mode"]' => ['value' => 'postal'],
+                    ':input[name="presentee_shipping"]' => ['checked' => true],
                 ],
             ],
         ];
@@ -297,6 +314,7 @@ class DrupalBaumspendenDonationForm
                 'required' => [
                     ':input[name="as_present"]' => ['checked' => true],
                     ':input[name="shipping_mode"]' => ['value' => 'postal'],
+                    ':input[name="presentee_shipping"]' => ['checked' => true],
                 ],
             ],
         ];
@@ -307,6 +325,7 @@ class DrupalBaumspendenDonationForm
                 'required' => [
                     ':input[name="as_present"]' => ['checked' => true],
                     ':input[name="shipping_mode"]' => ['value' => 'postal'],
+                    ':input[name="presentee_shipping"]' => ['checked' => true],
                 ],
             ],
         ];
@@ -317,6 +336,7 @@ class DrupalBaumspendenDonationForm
                 'required' => [
                     ':input[name="as_present"]' => ['checked' => true],
                     ':input[name="shipping_mode"]' => ['value' => 'email'],
+                    ':input[name="presentee_shipping"]' => ['checked' => true],
                 ],
             ],
         ];
