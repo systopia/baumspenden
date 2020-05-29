@@ -148,6 +148,11 @@ function baumspenden_commerce_checkout_complete($commerce_order)
  */
 function baumspenden_field_widget_form_alter(&$element, &$form_state, $context)
 {
+    // TODO: BIC validation and thus IBAN and BIC field replacement must happen
+    //   in a generic form_alter hook implementation, because both fields have
+    //   to be replaced. Otherwise, only the BIC field will be replaced and
+    //   subsequent replacements will not work.
+
     // Add custom validation to BIC field in payment transaction forms.
     if (
         $context['instance']['entity_type'] == 'commerce_payment_transaction'
@@ -157,6 +162,74 @@ function baumspenden_field_widget_form_alter(&$element, &$form_state, $context)
         if (!isset($element['value']['#element_validate'])) {
             $element['value']['#element_validate'] = [];
         }
-        array_unshift($element['value']['#element_validate'], ['DrupalBaumspendenUtils', 'elementValidateBIC']);
+        array_unshift(
+            $element['value']['#element_validate'],
+            ['DrupalBaumspendenUtils', 'elementValidateBIC']
+        );
+
+        if (isset($form_state['triggering_element'])) {
+            $iban_field_parents = array_merge(
+                $element['#field_parents'],
+                [
+                    DrupalBaumspendenConfig::FIELD_NAME_IBAN,
+                    LANGUAGE_NONE,
+                    0,
+                    'iban_field',
+                ]
+            );
+            $iban_field = drupal_array_get_nested_value(
+                $form_state['complete form'],
+                $iban_field_parents
+            );
+            if ($form_state['triggering_element']['#name'] == $iban_field['#name']) {
+                $bic_field_parents = array_merge(
+                    $element['#field_parents'],
+                    [
+                        DrupalBaumspendenConfig::FIELD_NAME_BIC,
+                        LANGUAGE_NONE,
+                        0,
+                        'value',
+                    ]
+                );
+                $bic_field = &drupal_array_get_nested_value(
+                    $form_state['complete form'],
+                    $bic_field_parents
+                );
+                DrupalBaumspendenUtils::elementValidateBIC(
+                    $bic_field,
+                    $form_state,
+                    $form_state['complete form']
+                );
+            }
+        }
+    }
+
+    // Validate when changing the IBAN.
+    if (
+        $context['instance']['entity_type'] == 'commerce_payment_transaction'
+        && $context['instance']['field_name'] == DrupalBaumspendenConfig::FIELD_NAME_IBAN
+        && $form_state['build_info']['form_id'] != 'field_ui_field_edit_form'
+    ) {
+        if (isset($form_state['complete form'])) {
+            $bic_field_parents = array_merge(
+                $element['#field_parents'],
+                [
+                    DrupalBaumspendenConfig::FIELD_NAME_BIC,
+                    LANGUAGE_NONE,
+                    0,
+                    'value',
+                ]
+            );
+            $bic_field = drupal_array_get_nested_value(
+                $form_state['complete form'],
+                $bic_field_parents
+            );
+        }
+        $element['iban_field']['#ajax'] = [
+            'callback' => ['DrupalBaumspendenUtils', 'ajaxCallbackIBAN'],
+            'wrapper' => (isset($bic_field['#id']) ? $bic_field['#id'] : 'edit-commerce-cop-sepa-bic'),
+            'method' => 'replace',
+            'effect' => 'fade',
+        ];
     }
 }

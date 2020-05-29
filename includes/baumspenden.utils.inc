@@ -66,4 +66,8 @@ class DrupalBaumspendenUtils
             );
         }
     }
+
+    public static function ajaxCallbackIBAN($form, &$form_state) {
+        return $form[DrupalBaumspendenConfig::FIELD_NAME_BIC];
+    }
 }
