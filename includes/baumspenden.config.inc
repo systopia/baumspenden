@@ -19,6 +19,10 @@ class DrupalBaumspendenConfig
 {
     public const FIELD_NAME_PRESENTEE = 'baumspenden_presentee';
 
+    public const FIELD_NAME_IBAN = 'commerce_cop_sepa_iban';
+
+    public const FIELD_NAME_BIC = 'commerce_cop_sepa_bic';
+
     /**
      * Retrieves all available plant regions from the configuration.
      *

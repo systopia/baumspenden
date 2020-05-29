@@ -90,4 +90,66 @@ function baumspenden_install()
     field_create_instance($instance);
 
     // TODO: Add e-mail fields on customer profile and order.
+
+    // Add SEPA payment method.
+    module_load_include('module', 'commerce_cop');
+    // @see: commerce_cop_edit_payment_form_submit().
+    $record = [
+        'id' => 'sepa_direct_debit',
+        'title' => 'SEPA Direct Debit',
+        'description' => '',
+        'information' => '',
+        'format' => 'plain_text',
+        'status' => true,
+        'checkout' => true,
+        'terminal' => true,
+        'fieldable' => true,
+    ];
+    if (commerce_cop_payment_save($record)) {
+        if (module_exists('commerce_payment_fields')) {
+            //@to do deep integration with Drupal Commerce Payment Transaction Fields module.
+            entity_info_cache_clear();
+            menu_rebuild();
+        }
+    }
+
+    // Add IBAN field.
+    if (!field_info_field(DrupalBaumspendenConfig::FIELD_NAME_IBAN)) {
+        $field_info = [
+            'field_name' => DrupalBaumspendenConfig::FIELD_NAME_IBAN,
+            'type' => 'iban_field',
+        ];
+        field_create_field($field_info);
+    }
+    $instance = [
+        'field_name' => DrupalBaumspendenConfig::FIELD_NAME_IBAN,
+        'entity_type' => 'commerce_payment_transaction',
+        'bundle' => 'sepa_direct_debit',
+        'label' => 'IBAN',
+        'required' => true,
+        'widget' => [
+            'type' => 'iban_field',
+        ],
+    ];
+    field_create_instance($instance);
+
+    // Add BIC field.
+    if (!field_info_field(DrupalBaumspendenConfig::FIELD_NAME_BIC)) {
+        $field_info = [
+            'field_name' => DrupalBaumspendenConfig::FIELD_NAME_BIC,
+            'type' => 'text',
+        ];
+        field_create_field($field_info);
+    }
+    $instance = [
+        'field_name' => DrupalBaumspendenConfig::FIELD_NAME_BIC,
+        'entity_type' => 'commerce_payment_transaction',
+        'bundle' => 'sepa_direct_debit',
+        'label' => 'BIC',
+        'required' => false,
+        'widget' => [
+            'type' => 'text_textfield',
+        ],
+    ];
+    field_create_instance($instance);
 }
