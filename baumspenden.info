@@ -28,3 +28,5 @@ files[] = includes/baumspenden.config.inc
 files[] = includes/baumspenden.donation_form.inc
 files[] = includes/baumspenden.donation.inc
 files[] = includes/baumspenden.order.inc
+files[] = includes/baumspenden.utils.inc
+files[] = includes/baumspenden.civimrf.inc

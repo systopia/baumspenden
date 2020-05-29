@@ -142,3 +142,21 @@ function baumspenden_commerce_checkout_complete($commerce_order)
         $order->complete();
     }
 }
+
+/**
+ * Implements hook_field_widget_form_alter().
+ */
+function baumspenden_field_widget_form_alter(&$element, &$form_state, $context)
+{
+    // Add custom validation to BIC field in payment transaction forms.
+    if (
+        $context['instance']['entity_type'] == 'commerce_payment_transaction'
+        && $context['instance']['field_name'] == DrupalBaumspendenConfig::FIELD_NAME_BIC
+        && $form_state['build_info']['form_id'] != 'field_ui_field_edit_form'
+    ) {
+        if (!isset($element['value']['#element_validate'])) {
+            $element['value']['#element_validate'] = [];
+        }
+        array_unshift($element['value']['#element_validate'], ['DrupalBaumspendenUtils', 'elementValidateBIC']);
+    }
+}
