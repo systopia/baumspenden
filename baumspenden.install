@@ -67,7 +67,7 @@ function baumspenden_install()
     commerce_order_configure_order_type($order_type['type']);
 
     // Remove commerce_customer_billing field from the order type, since we're
-    // adding our own profile reference fields..
+    // adding our own profile reference fields.
     // @see baumspenden_commerce_customer_profile_type_info().
     $instance = field_info_instance(
         'commerce_order',
@@ -77,7 +77,7 @@ function baumspenden_install()
     field_delete_instance($instance, false);
 
     /**
-     * E-mail fields on customer profiles.
+     * Commerce customer profiles.
      */
     // Create field for e-mail addresses on customer profile types.
     if (!field_info_field(DrupalBaumspendenConfig::FIELD_NAME_EMAIL)) {
@@ -120,6 +120,22 @@ function baumspenden_install()
             'required' => false,
         ];
         field_create_instance($instance);
+    }
+
+    // Disable checkout panes for our customer profiles.
+    foreach (
+        [
+            DrupalBaumspendenOrder::CUSTOMER_PROFILE_TYPE_DONOR,
+            DrupalBaumspendenOrder::CUSTOMER_PROFILE_TYPE_PRESENTEE,
+        ] as $profile_type
+    ) {
+        $checkout_pane = commerce_checkout_pane_load(
+            'customer_profile_' . $profile_type
+        );
+        $checkout_pane['enabled'] = false;
+        $checkout_pane['page'] = 'disabled';
+        commerce_checkout_pane_save($checkout_pane);
+        drupal_static_reset('commerce_checkout_panes');
     }
 
     /**
