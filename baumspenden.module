@@ -78,6 +78,33 @@ function baumspenden_commerce_product_type_info()
 }
 
 /**
+ * Implements hook_commerce_customer_profile_type_info().
+ */
+function baumspenden_commerce_customer_profile_type_info() {
+    $profile_types = array();
+
+    // Add customer profile type for donors.
+    $profile_types[DrupalBaumspendenOrder::CUSTOMER_PROFILE_TYPE_DONOR] = array(
+        'type' => DrupalBaumspendenOrder::CUSTOMER_PROFILE_TYPE_DONOR,
+        'name' => t('Baumspenden donor'),
+        'description' => t('Used to collect contact data about the Baumspenden donor.'),
+        'help' => '',
+        'checkout_pane_weight' => 0,
+    );
+
+    // Add customer profile type for presentees.
+    $profile_types[DrupalBaumspendenOrder::CUSTOMER_PROFILE_TYPE_PRESENTEE] = array(
+        'type' => DrupalBaumspendenOrder::CUSTOMER_PROFILE_TYPE_PRESENTEE,
+        'name' => t('Baumspenden presentee'),
+        'description' => t('Used to collect contact data about the Baumspenden presentee.'),
+        'help' => '',
+        'checkout_pane_weight' => 0,
+    );
+
+    return $profile_types;
+}
+
+/**
  * Implements hook_commerce_cart_order_is_cart_alter().
  */
 function baumspenden_commerce_cart_order_is_cart_alter(&$is_cart, $order)

@@ -23,6 +23,7 @@ dependencies[] = commerce_order_types
 dependencies[] = commerce_cop
 dependencies[] = commerce_payment_fields
 dependencies[] = iban_field
+dependencies[] = email
 
 files[] = includes/baumspenden.config.inc
 files[] = includes/baumspenden.donation_form.inc

@@ -17,7 +17,9 @@
  */
 function baumspenden_install()
 {
-    // Create product fields and instances.
+    /**
+     * Commerce product fields.
+     */
     foreach (
         [
             'plant_period' => t('Plant period'),
@@ -32,22 +34,29 @@ function baumspenden_install()
             ];
             field_create_field($field_info);
         }
-        $instance = [
-            'field_name' => 'baumspenden_' . $field_name,
-            'entity_type' => 'commerce_product',
-            'bundle' => DrupalBaumspendenDonation::PRODUCT_TYPE,
-            'label' => $field_label,
-            'required' => true,
-            'settings' => [],
-            'widget' => [
-                'type' => 'options_select',
-            ],
-        ];
-        field_create_instance($instance);
+        if (!field_info_instance(
+            'commerce_product',
+            'baumspenden_' . $field_name,
+            DrupalBaumspendenDonation::PRODUCT_TYPE
+        )) {
+            $instance = [
+                'field_name' => 'baumspenden_' . $field_name,
+                'entity_type' => 'commerce_product',
+                'bundle' => DrupalBaumspendenDonation::PRODUCT_TYPE,
+                'label' => $field_label,
+                'required' => true,
+                'settings' => [],
+                'widget' => [
+                    'type' => 'options_select',
+                ],
+            ];
+            field_create_instance($instance);
+        }
     }
 
-    // Create "Baumspende" order type and add an addressfield for presentee
-    // data.
+    /**
+     * Commerce order type.
+     */
     $order_type = [
         'type' => DrupalBaumspendenOrder::ORDER_TYPE,
         'name' => 'Baumspendenbestellung',
@@ -57,40 +66,65 @@ function baumspenden_install()
     // Add default fields to the order type.
     commerce_order_configure_order_type($order_type['type']);
 
-    if (!field_info_field(DrupalBaumspendenConfig::FIELD_NAME_PRESENTEE)) {
+    // Remove commerce_customer_billing field from the order type, since we're
+    // adding our own profile reference fields..
+    // @see baumspenden_commerce_customer_profile_type_info().
+    $instance = field_info_instance(
+        'commerce_order',
+        'commerce_customer_billing',
+        DrupalBaumspendenOrder::ORDER_TYPE
+    );
+    field_delete_instance($instance, false);
+
+    /**
+     * E-mail fields on customer profiles.
+     */
+    // Create field for e-mail addresses on customer profile types.
+    if (!field_info_field(DrupalBaumspendenConfig::FIELD_NAME_EMAIL)) {
         $field_info = [
-            'field_name' => DrupalBaumspendenConfig::FIELD_NAME_PRESENTEE,
-            'type' => 'addressfield',
+            'field_name' => DrupalBaumspendenConfig::FIELD_NAME_EMAIL,
+            'type' => 'email',
         ];
         field_create_field($field_info);
     }
-    $instance = [
-        'field_name' => DrupalBaumspendenConfig::FIELD_NAME_PRESENTEE,
-        'entity_type' => 'commerce_order',
-        'bundle' => DrupalBaumspendenOrder::ORDER_TYPE,
-        'label' => 'Beschenkter',
-        'required' => false,
-        'widget' => [
-            'type' => 'addressfield_standard',
-            'settings' => [
-                'available_countries' => [],
-                // Can't use variable_get('site_default_country') here because it would
-                // set the value in stone. Instead, the site_default option allows the
-                // default country to always reflect the current site setting.
-                'default_country' => 'site_default',
-                'format_handlers' => [
-                    'address',
-                    'address-hide-administrative-area',
-                    'address-hide-country',
-                    'name-full',
-                ],
-            ],
-        ],
-    ];
-    field_create_instance($instance);
 
-    // TODO: Add e-mail fields on customer profile and order.
+    // Create email field instance for donor e-mail address on the donor
+    // customer profile type.
+    if (!field_info_instance(
+        'commerce_customer_profile',
+        DrupalBaumspendenConfig::FIELD_NAME_EMAIL,
+        DrupalBaumspendenOrder::CUSTOMER_PROFILE_TYPE_DONOR
+    )) {
+        $instance = [
+            'field_name' => DrupalBaumspendenConfig::FIELD_NAME_EMAIL,
+            'entity_type' => 'commerce_customer_profile',
+            'bundle' => DrupalBaumspendenOrder::CUSTOMER_PROFILE_TYPE_DONOR,
+            'label' => 'E-Mail-Adresse',
+            'required' => false,
+        ];
+        field_create_instance($instance);
+    }
 
+    // Create email field instance for donor e-mail address on the presentee
+    // customer profile type.
+    if (!field_info_instance(
+        'commerce_customer_profile',
+        DrupalBaumspendenConfig::FIELD_NAME_EMAIL,
+        DrupalBaumspendenOrder::CUSTOMER_PROFILE_TYPE_PRESENTEE
+    )) {
+        $instance = [
+            'field_name' => DrupalBaumspendenConfig::FIELD_NAME_EMAIL,
+            'entity_type' => 'commerce_customer_profile',
+            'bundle' => DrupalBaumspendenOrder::CUSTOMER_PROFILE_TYPE_PRESENTEE,
+            'label' => 'E-Mail-Adresse',
+            'required' => false,
+        ];
+        field_create_instance($instance);
+    }
+
+    /**
+     * Commerce payment method "SEPA Direct Debit".
+     */
     // Add SEPA payment method.
     module_load_include('module', 'commerce_cop');
     // @see: commerce_cop_edit_payment_form_submit().
@@ -121,17 +155,23 @@ function baumspenden_install()
         ];
         field_create_field($field_info);
     }
-    $instance = [
-        'field_name' => DrupalBaumspendenConfig::FIELD_NAME_IBAN,
-        'entity_type' => 'commerce_payment_transaction',
-        'bundle' => 'sepa_direct_debit',
-        'label' => 'IBAN',
-        'required' => true,
-        'widget' => [
-            'type' => 'iban_field',
-        ],
-    ];
-    field_create_instance($instance);
+    if (!field_info_instance(
+        'commerce_payment_transaction',
+        DrupalBaumspendenConfig::FIELD_NAME_IBAN,
+        'sepa_direct_debit'
+    )) {
+        $instance = [
+            'field_name' => DrupalBaumspendenConfig::FIELD_NAME_IBAN,
+            'entity_type' => 'commerce_payment_transaction',
+            'bundle' => 'sepa_direct_debit',
+            'label' => 'IBAN',
+            'required' => true,
+            'widget' => [
+                'type' => 'iban_field',
+            ],
+        ];
+        field_create_instance($instance);
+    }
 
     // Add BIC field.
     if (!field_info_field(DrupalBaumspendenConfig::FIELD_NAME_BIC)) {
@@ -141,15 +181,21 @@ function baumspenden_install()
         ];
         field_create_field($field_info);
     }
-    $instance = [
-        'field_name' => DrupalBaumspendenConfig::FIELD_NAME_BIC,
-        'entity_type' => 'commerce_payment_transaction',
-        'bundle' => 'sepa_direct_debit',
-        'label' => 'BIC',
-        'required' => false,
-        'widget' => [
-            'type' => 'text_textfield',
-        ],
-    ];
-    field_create_instance($instance);
+    if (!field_info_instance(
+        'commerce_payment_transaction',
+        DrupalBaumspendenConfig::FIELD_NAME_BIC,
+        'sepa_direct_debit'
+    )) {
+        $instance = [
+            'field_name' => DrupalBaumspendenConfig::FIELD_NAME_BIC,
+            'entity_type' => 'commerce_payment_transaction',
+            'bundle' => 'sepa_direct_debit',
+            'label' => 'BIC',
+            'required' => false,
+            'widget' => [
+                'type' => 'text_textfield',
+            ],
+        ];
+        field_create_instance($instance);
+    }
 }

@@ -23,6 +23,24 @@ class DrupalBaumspendenOrder
     public const ORDER_TYPE = 'baumspende';
 
     /**
+     * Machine-readable name of the customer profile type to use for
+     * Baumspenden orders.
+     * This must not exceed 14 characters, since commerce_customer adds its
+     * module name as a prefix and a field name may only be 32 characters in
+     * length.
+     */
+    public const CUSTOMER_PROFILE_TYPE_DONOR = 'baumsp_donor';
+
+    /**
+     * Machine-readable name of the customer profile type to use for Baumspenden
+     * orders.
+     * This must not exceed 14 characters, since commerce_customer adds its
+     * module name as a prefix and a field name may only be 32 characters in
+     * length.
+     */
+    public const CUSTOMER_PROFILE_TYPE_PRESENTEE = 'baumsp_prsntee';
+
+    /**
      * @var $order
      *   The Drupal Commerce order object.
      */
@@ -79,8 +97,14 @@ class DrupalBaumspendenOrder
         // Add properties.
         $order = new self($commerce_order->order_id);
         $order->addDonations($donations);
-        $order->addCustomerProfile($customer_data);
-        $order->addPresenteeAddress($presentee_data);
+        $order->addCustomerProfile(
+            $customer_data,
+            self::CUSTOMER_PROFILE_TYPE_PRESENTEE
+        );
+        $order->addCustomerProfile(
+            $presentee_data,
+            self::CUSTOMER_PROFILE_TYPE_PRESENTEE
+        );
 
         return $order;
     }
@@ -117,10 +141,12 @@ class DrupalBaumspendenOrder
      *
      * @param $customer_data
      */
-    public function addCustomerProfile($customer_data)
-    {
+    public function addCustomerProfile(
+        $customer_data,
+        $profile_type = self::CUSTOMER_PROFILE_TYPE_DONOR
+    ) {
         $customer_profile = commerce_customer_profile_new(
-            'billing',
+            $profile_type,
             $this->order->uid
         );
         $customer_profile_wrapper = entity_metadata_wrapper(
@@ -148,37 +174,12 @@ class DrupalBaumspendenOrder
         $customer_profile_wrapper->commerce_customer_address->name_line = null;
 
         // TODO: Set e-mail address field(s) (created in .install).
+        if (!empty($customer_data['email'])) {
+            $customer_profile_wrapper->{DrupalBaumspendenConfig::FIELD_NAME_EMAIL} = $customer_data['email'];
+        }
 
         commerce_customer_profile_save($customer_profile);
         $this->order_wrapper->commerce_customer_billing = $customer_profile->profile_id;
-
-        commerce_order_save($this->order);
-    }
-
-    /**
-     * Fills the presentee field on the Drupal Commerce order.
-     *
-     * @param array $presentee_data
-     */
-    public function addPresenteeAddress($presentee_data)
-    {
-        foreach (
-            [
-                'first_name' => 'first_name',
-                'last_name' => 'last_name',
-                'street_address' => 'thoroughfare',
-                'postal_code' => 'postal_code',
-                'city' => 'locality',
-            ] as $key => $property
-        ) {
-            if (!empty($presentee_data[$key])) {
-                $this->order_wrapper->{DrupalBaumspendenConfig::FIELD_NAME_PRESENTEE}->$property = $presentee_data[$key];
-            }
-        }
-        // Addressfield tampers with first_name and last_name if name_line is
-        // set (it is set to the empty string). Setting it therefore to NULL.
-        // @see addressfield_field_presave().
-        $this->order_wrapper->{DrupalBaumspendenConfig::FIELD_NAME_PRESENTEE}->name_line = null;
 
         commerce_order_save($this->order);
     }
