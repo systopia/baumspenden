@@ -99,7 +99,7 @@ class DrupalBaumspendenOrder
         $order->addDonations($donations);
         $order->addCustomerProfile(
             $customer_data,
-            self::CUSTOMER_PROFILE_TYPE_PRESENTEE
+            self::CUSTOMER_PROFILE_TYPE_DONOR
         );
         $order->addCustomerProfile(
             $presentee_data,
@@ -179,7 +179,7 @@ class DrupalBaumspendenOrder
         }
 
         commerce_customer_profile_save($customer_profile);
-        $this->order_wrapper->commerce_customer_billing = $customer_profile->profile_id;
+        $this->order_wrapper->{'commerce_customer_' . $profile_type} = $customer_profile->profile_id;
 
         commerce_order_save($this->order);
     }
