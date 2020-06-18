@@ -192,6 +192,16 @@ class DrupalBaumspendenDonationForm
             ],
         ];
 
+        $form['shipping_mode'] = [
+            '#type' => 'select',
+            '#title' => 'Versandoption',
+            '#options' => [
+                'email' => 'als PDF per E-Mail',
+                'postal' => 'postalisch',
+                'none' => 'kein Zertifikat',
+            ],
+        ];
+
         $form['contact'] = [
             '#type' => 'fieldset',
             '#title' => 'Meine Kontaktdaten',
@@ -240,12 +250,7 @@ class DrupalBaumspendenDonationForm
         $form['contact']['email'] = [
             '#type' => 'textfield',
             '#title' => 'E-Mail-Adresse',
-            '#states' => [
-                'required' => [
-                    ':input[name="shipping_mode"]' => ['value' => 'email'],
-                    ':input[name="presentee_shipping"]' => ['checked' => false],
-                ],
-            ],
+            '#required' => true,
         ];
 
         $form['as_present'] = [
@@ -261,6 +266,10 @@ class DrupalBaumspendenDonationForm
                 'visible' => [
                     ':input[name="as_present"]' => [
                         'checked' => true,
+                    ],
+                    ':input[name="shipping_mode"]' => [
+                        ['value' => 'email'],
+                        ['value' => 'postal'],
                     ],
                 ],
             ],
@@ -338,16 +347,6 @@ class DrupalBaumspendenDonationForm
                     ':input[name="shipping_mode"]' => ['value' => 'email'],
                     ':input[name="presentee_shipping"]' => ['checked' => true],
                 ],
-            ],
-        ];
-
-        $form['shipping_mode'] = [
-            '#type' => 'select',
-            '#title' => 'Versandoption',
-            '#options' => [
-                'email' => 'als PDF per E-Mail',
-                'postal' => 'postalisch',
-                'none' => 'kein Zertifikat',
             ],
         ];
 
