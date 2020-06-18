@@ -387,7 +387,6 @@ class DrupalBaumspendenDonationForm
     public static function validate($form, &$form_state)
     {
         // Require a valid e-mail address.
-        // TODO: Only when it's required.
         if (
             self::isStatesRequired($form['contact']['email'], $form_state)
             && !valid_email_address($form_state['values']['contact']['email'])
@@ -506,7 +505,7 @@ class DrupalBaumspendenDonationForm
                 break;
             case 'preview':
                 // Preview (next step)
-                // TODO.
+                // TODO: Preview step.
                 // break;
             case 'submit':
                 form_state_values_clean($form_state);
@@ -553,7 +552,6 @@ class DrupalBaumspendenDonationForm
         if (!isset($storage['presentee'])) {
             $storage['presentee'] = [];
         }
-        // TODO: Pass and process e-mail address(es).
         $order = DrupalBaumspendenOrder::create(
             $donations,
             $storage['contact'],
@@ -640,7 +638,7 @@ class DrupalBaumspendenDonationForm
     {
         foreach ($element['#states']['required'] as $required_field_key => $conditions) {
             // TODO: This only covers selectors like :input[name="field_name"],
-            //   i.e. where the field name is the first occurence of text
+            //   i.e. where the field name is the first occurence of the text
             //   wrapped in double quotes (").
             $required_field = explode('"', $required_field_key);
             $required_field_parents = preg_split(
@@ -675,7 +673,7 @@ class DrupalBaumspendenDonationForm
                             $matched = $matched && $this_matched;
                         }
                         break;
-                    /* TODO: Add cases for the following states:
+                    /* TODO: Add cases for the following states, if needed:
                      *     - empty
                      *     - filled
                      *     - unchecked

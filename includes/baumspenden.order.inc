@@ -173,7 +173,7 @@ class DrupalBaumspendenOrder
         // @see addressfield_field_presave().
         $customer_profile_wrapper->commerce_customer_address->name_line = null;
 
-        // TODO: Set e-mail address field(s) (created in .install).
+        // Set e-mail address field(s) (created in .install).
         if (!empty($customer_data['email'])) {
             $customer_profile_wrapper->{DrupalBaumspendenConfig::FIELD_NAME_EMAIL} = $customer_data['email'];
         }
