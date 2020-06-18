@@ -217,3 +217,28 @@ function baumspenden_field_widget_form_alter(&$element, &$form_state, $context)
         ];
     }
 }
+
+/**
+ * Implements hook_theme().
+ */
+function baumspenden_theme($existing, $type, $theme, $path)
+{
+    return [
+        // Theme element for certificate previews.
+        'baumspenden_certificate_preview' => [
+            'variables' => [
+                'certificate_key' => 0,
+                'plant_info' => [
+                    'plant_period' => '',
+                    'plant_region' => '',
+                    'plant_tree' => '',
+                ],
+                'amount' => '',
+                'certificate_name' => '',
+                'background_image_url' => '',
+            ],
+            'path' => drupal_get_path('module', 'baumspenden') . '/templates',
+            'template' => 'baumspenden-certificate-preview',
+        ],
+    ];
+}

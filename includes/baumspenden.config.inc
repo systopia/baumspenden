@@ -25,6 +25,8 @@ class DrupalBaumspendenConfig
 
     public const FIELD_NAME_BIC = 'commerce_cop_sepa_bic';
 
+    public const IMAGE_BASE_URL_CERTIFICATE_BACKGROUND = '/sites/default/files/civicrm/baumspenden/';
+
     /**
      * Retrieves all available plant regions from the configuration.
      *

@@ -37,57 +37,47 @@ class DrupalBaumspendenDonationForm
             ['DrupalBaumspendenDonationForm', 'submit'],
         ];
 
-        $form['donations'] = [
-            '#type' => 'fieldset',
-            '#title' => 'Baumspenden',
-            '#tree' => true,
-            '#prefix' => '<div id="baumspenden-donations">',
-            '#suffix' => '</div>',
-        ];
-        if (empty($form_state['storage']['donations'])) {
-            $form_state['storage']['donations'][] = [];
+        if (empty($form_state['step'])) {
+            $form_state['step'] = 'form';
         }
-        foreach ($form_state['storage']['donations'] as $key => $donation) {
-            if (is_numeric($key)) {
-                $form['donations'][$key] = [
+
+        switch ($form_state['step']) {
+            case 'form':
+                $form['donations'] = [
                     '#type' => 'fieldset',
-                ];
-                $form['donations'][$key]['amount'] = [
-                    '#type' => 'textfield',
-                    '#title' => 'Ich spende',
-                    '#description' => 'Für mehr als 100 Bäume und Unternehmensspenden kontaktieren Sie uns bitte unter <a href="mailto:baumspende@bergwaldprojekt.de">baumspende@bergwaldprojekt.de</a>',
-                    '#field_suffix' => 'Baum/Bäume',
-                    '#required' => true,
-                    '#element_validate' => [
-                        'element_validate_integer_positive',
-                    ],
-                ];
-                $form['donations'][$key]['plant_info'] = [
-                    '#prefix' => '<div id="baumspenden-plant-info--' . $key . '">',
+                    '#title' => 'Baumspenden',
+                    '#tree' => true,
+                    '#prefix' => '<div id="baumspenden-donations">',
                     '#suffix' => '</div>',
                 ];
-                $form['donations'][$key]['plant_info']['plant_period'] = [
-                    '#type' => 'select',
-                    '#title' => 'Pflanzperiode',
-                    '#options' => DrupalBaumspendenConfig::getPlantPeriods(),
-                    '#empty_option' => '- Auswählen -',
-                    '#required' => true,
-                    '#ajax' => [
-                        'wrapper' => 'baumspenden-plant-info--' . $key,
-                        'callback' => [
-                            'DrupalBaumspendenDonationForm',
-                            'replacePlantInfo',
+                if (empty($form_state['storage']['donations'])) {
+                    $form_state['storage']['donations'][] = [];
+                }
+                foreach ($form_state['storage']['donations'] as $key => $donation) {
+                    $form['donations'][$key] = [
+                        '#type' => 'fieldset',
+                    ];
+                    $form['donations'][$key]['amount'] = [
+                        '#type' => 'textfield',
+                        '#title' => 'Ich spende',
+                        '#description' => 'Für mehr als 100 Bäume und Unternehmensspenden kontaktieren Sie uns bitte unter <a href="mailto:baumspende@bergwaldprojekt.de">baumspende@bergwaldprojekt.de</a>',
+                        '#field_suffix' => 'Baum/Bäume',
+                        '#required' => true,
+                        '#element_validate' => [
+                            'element_validate_integer_positive',
                         ],
-                    ],
-                ];
-
-                if (isset($form_state['storage']['donations'][$key]['plant_info']['plant_period'])) {
-                    $form['donations'][$key]['plant_info']['plant_region'] = [
+                        '#default_value' => isset($donation['amount']) ? $donation['amount'] : null,
+                    ];
+                    $form['donations'][$key]['plant_info'] = [
+                        '#prefix' => '<div id="baumspenden-plant-info--' . $key . '">',
+                        '#suffix' => '</div>',
+                    ];
+                    $form['donations'][$key]['plant_info']['plant_period'] = [
                         '#type' => 'select',
-                        '#title' => 'Region',
-                        '#options' => DrupalBaumspendenConfig::getPlantRegions(
-                            $form_state['storage']['donations'][$key]['plant_info']['plant_period']
+                        '#title' => 'Pflanzperiode',
+                        '#options' => DrupalBaumspendenConfig::getPlantPeriods(
                         ),
+                        '#empty_option' => '- Auswählen -',
                         '#required' => true,
                         '#ajax' => [
                             'wrapper' => 'baumspenden-plant-info--' . $key,
@@ -96,284 +86,382 @@ class DrupalBaumspendenDonationForm
                                 'replacePlantInfo',
                             ],
                         ],
+                        '#default_value' => isset($donation['plant_info']['plant_period']) ? $donation['plant_info']['plant_period'] : null,
                     ];
-                }
 
-                if (isset($form_state['storage']['donations'][$key]['plant_info']['plant_region'])) {
-                    $form['donations'][$key]['plant_info']['plant_tree'] = [
-                        '#type' => 'select',
-                        '#title' => 'Baumart',
-                        '#options' => DrupalBaumspendenConfig::getTreeSpecies(
-                            $form_state['storage']['donations'][$key]['plant_info']['plant_period'],
-                            $form_state['storage']['donations'][$key]['plant_info']['plant_region']
-                        ),
-                        '#required' => true,
-                    ];
-                }
-                $form['donations'][$key]['plant_info']['update'] = [
-                    '#type' => 'submit',
-                    '#baumspenden_op' => 'update_plant_info',
-                    // Distinctly identify button for this donation.
-                    '#name' => 'baumspenden_plant_info_' . $key,
-                    '#value' => t('Update'),
-                    '#attributes' => [
-                        'class' => [
-                            'hide-js',
-                        ],
-                    ],
-                    '#attached' => [
-                        'css' => [
-                            drupal_get_path(
-                                'module',
-                                'baumspenden'
-                            ) . '/css/baumspende.css',
-                        ],
-                    ],
-                    // Do not validate anything (Ajax-like behavior).
-                    '#limit_validation_errors' => [],
-                    // #submit is required when using #limit_validation_errors.
-                    '#submit' => [
-                        ['DrupalBaumspendenDonationForm', 'submit'],
-                    ],
-                    '#baumspenden_donation_key' => $key,
-                ];
+                    if (isset($form_state['storage']['donations'][$key]['plant_info']['plant_period'])) {
+                        $form['donations'][$key]['plant_info']['plant_region'] = [
+                            '#type' => 'select',
+                            '#title' => 'Region',
+                            '#options' => DrupalBaumspendenConfig::getPlantRegions(
+                                $form_state['storage']['donations'][$key]['plant_info']['plant_period']
+                            ),
+                            '#required' => true,
+                            '#ajax' => [
+                                'wrapper' => 'baumspenden-plant-info--' . $key,
+                                'callback' => [
+                                    'DrupalBaumspendenDonationForm',
+                                    'replacePlantInfo',
+                                ],
+                            ],
+                            '#default_value' => isset($donation['plant_info']['plant_region']) ? $donation['plant_info']['plant_region'] : null,
+                        ];
+                    }
 
-                $form['donations'][$key]['certificate_name'] = [
-                    '#type' => 'textfield',
-                    '#title' => 'Name auf Zertifikat',
-                    '#description' => 'max. 40 Zeichen',
-                    '#attributes' => [
-                        'placeholder' => 'Waldmariechen',
-                    ],
-                    '#maxlength' => 40,
-                ];
-
-                if ($key != 0) {
-                    $form['donations'][$key]['remove'] = [
+                    if (isset($form_state['storage']['donations'][$key]['plant_info']['plant_region'])) {
+                        $form['donations'][$key]['plant_info']['plant_tree'] = [
+                            '#type' => 'select',
+                            '#title' => 'Baumart',
+                            '#options' => DrupalBaumspendenConfig::getTreeSpecies(
+                                $form_state['storage']['donations'][$key]['plant_info']['plant_period'],
+                                $form_state['storage']['donations'][$key]['plant_info']['plant_region']
+                            ),
+                            '#required' => true,
+                            '#default_value' => isset($donation['plant_info']['plant_tree']) ? $donation['plant_info']['plant_tree'] : null,
+                        ];
+                    }
+                    $form['donations'][$key]['plant_info']['update'] = [
                         '#type' => 'submit',
-                        '#baumspenden_op' => 'remove_donation',
+                        '#baumspenden_op' => 'update_plant_info',
                         // Distinctly identify button for this donation.
-                        '#name' => 'baumspenden_remove_donation_' . $key,
-                        '#value' => t('Remove'),
-                        // Do not validate anything.
+                        '#name' => 'baumspenden_plant_info_' . $key,
+                        '#value' => t('Update'),
+                        '#attributes' => [
+                            'class' => [
+                                'hide-js',
+                            ],
+                        ],
+                        '#attached' => [
+                            'css' => [
+                                drupal_get_path(
+                                    'module',
+                                    'baumspenden'
+                                ) . '/css/baumspende.css',
+                            ],
+                        ],
+                        // Do not validate anything (Ajax-like behavior).
                         '#limit_validation_errors' => [],
                         // #submit is required when using #limit_validation_errors.
                         '#submit' => [
                             ['DrupalBaumspendenDonationForm', 'submit'],
                         ],
-                        '#ajax' => [
-                            'wrapper' => 'baumspenden-donations',
-                            'callback' => [
-                                'DrupalBaumspendenDonationForm',
-                                'replaceDonations',
-                            ],
-                        ],
                         '#baumspenden_donation_key' => $key,
                     ];
+
+                    $form['donations'][$key]['certificate_name'] = [
+                        '#type' => 'textfield',
+                        '#title' => 'Name auf Zertifikat',
+                        '#description' => 'max. 40 Zeichen',
+                        '#attributes' => [
+                            'placeholder' => 'Waldmariechen',
+                        ],
+                        '#maxlength' => 40,
+                        '#default_value' => isset($donation['certificate_name']) ? $donation['certificate_name'] : null,
+                    ];
+
+                    if ($key != 0) {
+                        $form['donations'][$key]['remove'] = [
+                            '#type' => 'submit',
+                            '#baumspenden_op' => 'remove_donation',
+                            // Distinctly identify button for this donation.
+                            '#name' => 'baumspenden_remove_donation_' . $key,
+                            '#value' => t('Remove'),
+                            // Do not validate anything.
+                            '#limit_validation_errors' => [],
+                            // #submit is required when using #limit_validation_errors.
+                            '#submit' => [
+                                ['DrupalBaumspendenDonationForm', 'submit'],
+                            ],
+                            '#ajax' => [
+                                'wrapper' => 'baumspenden-donations',
+                                'callback' => [
+                                    'DrupalBaumspendenDonationForm',
+                                    'replaceDonations',
+                                ],
+                            ],
+                            '#baumspenden_donation_key' => $key,
+                        ];
+                    }
                 }
-            }
+                $form['donations']['add'] = [
+                    '#type' => 'submit',
+                    '#baumspenden_op' => 'add_donation',
+                    '#value' => 'Baumspende hinzufügen',
+                    // Only validate related fields.
+                    '#limit_validation_errors' => [],
+                    // #submit is required when using #limit_validation_errors.
+                    '#submit' => [
+                        ['DrupalBaumspendenDonationForm', 'submit'],
+                    ],
+                    '#ajax' => [
+                        'wrapper' => 'baumspenden-donations',
+                        'callback' => [
+                            'DrupalBaumspendenDonationForm',
+                            'replaceDonations',
+                        ],
+                    ],
+                ];
+
+                $form['shipping_mode'] = [
+                    '#type' => 'select',
+                    '#title' => 'Versandoption',
+                    '#options' => [
+                        'email' => 'als PDF per E-Mail',
+                        'postal' => 'postalisch',
+                        'none' => 'kein Zertifikat',
+                    ],
+                    '#default_value' => isset($form_state['storage']['shipping_mode']) ? $form_state['storage']['shipping_mode'] : null,
+                ];
+
+                $form['contact'] = [
+                    '#type' => 'fieldset',
+                    '#title' => 'Meine Kontaktdaten',
+                    '#tree' => true,
+                ];
+                $form['contact']['first_name'] = [
+                    '#type' => 'textfield',
+                    '#title' => 'Vorname',
+                    '#required' => true,
+                    '#default_value' => isset($form_state['storage']['contact']['first_name']) ? $form_state['storage']['contact']['first_name'] : null,
+                ];
+                $form['contact']['last_name'] = [
+                    '#type' => 'textfield',
+                    '#title' => 'Nachname',
+                    '#required' => true,
+                    '#default_value' => isset($form_state['storage']['contact']['last_name']) ? $form_state['storage']['contact']['last_name'] : null,
+                ];
+                $form['contact']['street_address'] = [
+                    '#type' => 'textfield',
+                    '#title' => 'Straße, Hausnummer',
+                    '#states' => [
+                        'required' => [
+                            ':input[name="shipping_mode"]' => ['value' => 'postal'],
+                            ':input[name="presentee_shipping"]' => ['checked' => false],
+                        ],
+                    ],
+                    '#default_value' => isset($form_state['storage']['contact']['street_address']) ? $form_state['storage']['contact']['street_address'] : null,
+                ];
+                $form['contact']['postal_code'] = [
+                    '#type' => 'textfield',
+                    '#title' => 'Postleitzahl',
+                    '#states' => [
+                        'required' => [
+                            ':input[name="shipping_mode"]' => ['value' => 'postal'],
+                            ':input[name="presentee_shipping"]' => ['checked' => false],
+                        ],
+                    ],
+                    '#default_value' => isset($form_state['storage']['contact']['postal_code']) ? $form_state['storage']['contact']['postal_code'] : null,
+                ];
+                $form['contact']['city'] = [
+                    '#type' => 'textfield',
+                    '#title' => 'Ort',
+                    '#states' => [
+                        'required' => [
+                            ':input[name="shipping_mode"]' => ['value' => 'postal'],
+                            ':input[name="presentee_shipping"]' => ['checked' => false],
+                        ],
+                    ],
+                    '#default_value' => isset($form_state['storage']['contact']['city']) ? $form_state['storage']['contact']['city'] : null,
+                ];
+                $form['contact']['email'] = [
+                    '#type' => 'textfield',
+                    '#title' => 'E-Mail-Adresse',
+                    '#required' => true,
+                    '#default_value' => isset($form_state['storage']['contact']['email']) ? $form_state['storage']['contact']['email'] : null,
+                ];
+
+                $form['as_present'] = [
+                    '#type' => 'checkbox',
+                    '#title' => 'Als Geschenk',
+                    '#description' => 'Ich möchte das Zertifikat verschenken.',
+                    '#default_value' => isset($form_state['storage']['as_present']) ? $form_state['storage']['as_present'] : null,
+                ];
+                $form['presentee_shipping'] = [
+                    '#type' => 'checkbox',
+                    '#title' => 'An Beschenkte/n versenden',
+                    '#description' => 'Das Zertifikat soll direkt an die/den Beschenkte/n versendet werden.',
+                    '#states' => [
+                        'visible' => [
+                            ':input[name="as_present"]' => [
+                                'checked' => true,
+                            ],
+                            ':input[name="shipping_mode"]' => [
+                                ['value' => 'email'],
+                                ['value' => 'postal'],
+                            ],
+                        ],
+                    ],
+                    '#default_value' => isset($form_state['storage']['presentee_shipping']) ? $form_state['storage']['presentee_shipping'] : null,
+                ];
+
+                $form['presentee'] = [
+                    '#type' => 'fieldset',
+                    '#title' => 'Verschenken an',
+                    '#tree' => true,
+                    '#states' => [
+                        'visible' => [
+                            ':input[name="as_present"]' => [
+                                'checked' => true,
+                            ],
+                        ],
+                    ],
+                ];
+                $form['presentee']['first_name'] = [
+                    '#type' => 'textfield',
+                    '#title' => 'Vorname',
+                    '#states' => [
+                        'required' => [
+                            ':input[name="as_present"]' => ['checked' => true],
+                        ],
+                    ],
+                    '#default_value' => isset($form_state['storage']['presentee']['first_name']) ? $form_state['storage']['presentee']['first_name'] : null,
+                ];
+                $form['presentee']['last_name'] = [
+                    '#type' => 'textfield',
+                    '#title' => 'Nachname',
+                    '#states' => [
+                        'required' => [
+                            ':input[name="as_present"]' => ['checked' => true],
+                        ],
+                    ],
+                    '#default_value' => isset($form_state['storage']['presentee']['first_name']) ? $form_state['storage']['presentee']['first_name'] : null,
+                ];
+                $form['presentee']['street_address'] = [
+                    '#type' => 'textfield',
+                    '#title' => 'Straße, Hausnummer',
+                    '#states' => [
+                        'required' => [
+                            ':input[name="as_present"]' => ['checked' => true],
+                            ':input[name="shipping_mode"]' => ['value' => 'postal'],
+                            ':input[name="presentee_shipping"]' => ['checked' => true],
+                        ],
+                    ],
+                    '#default_value' => isset($form_state['storage']['presentee']['street_address']) ? $form_state['storage']['presentee']['street_address'] : null,
+                ];
+                $form['presentee']['postal_code'] = [
+                    '#type' => 'textfield',
+                    '#title' => 'Postleitzahl',
+                    '#states' => [
+                        'required' => [
+                            ':input[name="as_present"]' => ['checked' => true],
+                            ':input[name="shipping_mode"]' => ['value' => 'postal'],
+                            ':input[name="presentee_shipping"]' => ['checked' => true],
+                        ],
+                    ],
+                    '#default_value' => isset($form_state['storage']['presentee']['postal_code']) ? $form_state['storage']['presentee']['postal_code'] : null,
+                ];
+                $form['presentee']['city'] = [
+                    '#type' => 'textfield',
+                    '#title' => 'Ort',
+                    '#states' => [
+                        'required' => [
+                            ':input[name="as_present"]' => ['checked' => true],
+                            ':input[name="shipping_mode"]' => ['value' => 'postal'],
+                            ':input[name="presentee_shipping"]' => ['checked' => true],
+                        ],
+                    ],
+                    '#default_value' => isset($form_state['storage']['presentee']['city']) ? $form_state['storage']['presentee']['city'] : null,
+                ];
+                $form['presentee']['email'] = [
+                    '#type' => 'textfield',
+                    '#title' => 'E-Mail-Adresse',
+                    '#states' => [
+                        'required' => [
+                            ':input[name="as_present"]' => ['checked' => true],
+                            ':input[name="shipping_mode"]' => ['value' => 'email'],
+                            ':input[name="presentee_shipping"]' => ['checked' => true],
+                        ],
+                    ],
+                    '#default_value' => isset($form_state['storage']['presentee']['email']) ? $form_state['storage']['presentee']['email'] : null,
+                ];
+
+                $form['newsletter'] = [
+                    '#type' => 'checkbox',
+                    '#title' => 'Newsletter abonnieren',
+                    '#description' => 'Newsletter mit aktuellen Themen rund um das Bergwaldprojekt',
+                    '#default_value' => isset($form_state['storage']['newsletter']) ? $form_state['storage']['newsletter'] : null,
+                ];
+
+                $form['gdpr_consent'] = [
+                    '#type' => 'checkbox',
+                    '#title' => 'Datenschutz',
+                    '#description' => 'Ich habe die <a href="' . variable_get(
+                            'baumspenden_gdpr_link',
+                            '/datenschutz'
+                        ) . '" target="_blank">Datenschutzerklärung</a> gelesen und akzeptiere diese.',
+                    '#required' => true,
+                    '#default_value' => isset($form_state['storage']['gdpr_consent']) ? $form_state['storage']['gdpr_consent'] : null,
+                ];
+
+                $form['actions'] = [
+                    '#type' => 'actions',
+                ];
+                $form['actions']['preview'] = [
+                    '#type' => 'submit',
+                    '#baumspenden_op' => 'preview',
+                    '#value' => 'Vorschau',
+                    '#states' => [
+                        'visible' => [
+                            ':input[name="shipping_mode"]' => [
+                                ['value' => 'postal'],
+                                ['value' => 'email'],
+                            ],
+                        ],
+                    ],
+                ];
+                $form['actions']['submit'] = [
+                    '#type' => 'submit',
+                    '#baumspenden_op' => 'submit',
+                    '#value' => 'Spenden',
+                    '#states' => [
+                        'visible' => [
+                            ':input[name="shipping_mode"]' => [
+                                ['value' => 'none'],
+                            ],
+                        ],
+                    ],
+                ];
+                break;
+            case 'preview':
+                $storage = $form_state;
+                form_state_values_clean($storage);
+                $storage = $storage['values'];
+                foreach ($storage['donations'] as $key => $donation_data) {
+                    // TODO: Build certificate name when empty (initiator/presentee first and last name).
+                    $certificate_background_url = DrupalBaumspendenConfig::IMAGE_BASE_URL_CERTIFICATE_BACKGROUND . $donation_data['plant_info']['plant_region'] . '.jpg';
+                    $form[$key] = [
+                        '#type' => 'fieldset',
+                        '#title' => 'Zertifikat ' . ($key + 1),
+                        '#collapsible' => true,
+                        '#collapsed' => ($key != 0),
+                        'preview' => [
+                            '#theme' => 'baumspenden_certificate_preview',
+                            '#certificate_key' => $key,
+                            '#plant_info' => $donation_data['plant_info'],
+                            '#amount' => $donation_data['amount'],
+                            '#certificate_name' => $donation_data['certificate_name'],
+                            '#background_image_url' => $certificate_background_url,
+                        ],
+                    ];
+                }
+
+                $form['actions'] = [
+                    '#type' => 'actions',
+                ];
+                $form['actions']['to_form'] = [
+                    '#type' => 'submit',
+                    '#baumspenden_op' => 'to_form',
+                    '#value' => 'Zurück',
+                    '#limit_validation_errors' => [],
+                ];
+                $form['actions']['submit'] = [
+                    '#type' => 'submit',
+                    '#baumspenden_op' => 'submit',
+                    '#value' => 'Spenden',
+                    '#limit_validation_errors' => [],
+                ];
+                break;
         }
-        $form['donations']['add'] = [
-            '#type' => 'submit',
-            '#baumspenden_op' => 'add_donation',
-            '#value' => 'Baumspende hinzufügen',
-            // Only validate related fields.
-            '#limit_validation_errors' => [],
-            // #submit is required when using #limit_validation_errors.
-            '#submit' => [
-                ['DrupalBaumspendenDonationForm', 'submit'],
-            ],
-            '#ajax' => [
-                'wrapper' => 'baumspenden-donations',
-                'callback' => [
-                    'DrupalBaumspendenDonationForm',
-                    'replaceDonations',
-                ],
-            ],
-        ];
-
-        $form['shipping_mode'] = [
-            '#type' => 'select',
-            '#title' => 'Versandoption',
-            '#options' => [
-                'email' => 'als PDF per E-Mail',
-                'postal' => 'postalisch',
-                'none' => 'kein Zertifikat',
-            ],
-        ];
-
-        $form['contact'] = [
-            '#type' => 'fieldset',
-            '#title' => 'Meine Kontaktdaten',
-            '#tree' => true,
-        ];
-        $form['contact']['first_name'] = [
-            '#type' => 'textfield',
-            '#title' => 'Vorname',
-            '#required' => true,
-        ];
-        $form['contact']['last_name'] = [
-            '#type' => 'textfield',
-            '#title' => 'Nachname',
-            '#required' => true,
-        ];
-        $form['contact']['street_address'] = [
-            '#type' => 'textfield',
-            '#title' => 'Straße, Hausnummer',
-            '#states' => [
-                'required' => [
-                    ':input[name="shipping_mode"]' => ['value' => 'postal'],
-                    ':input[name="presentee_shipping"]' => ['checked' => false],
-                ],
-            ],
-        ];
-        $form['contact']['postal_code'] = [
-            '#type' => 'textfield',
-            '#title' => 'Postleitzahl',
-            '#states' => [
-                'required' => [
-                    ':input[name="shipping_mode"]' => ['value' => 'postal'],
-                    ':input[name="presentee_shipping"]' => ['checked' => false],
-                ],
-            ],
-        ];
-        $form['contact']['city'] = [
-            '#type' => 'textfield',
-            '#title' => 'Ort',
-            '#states' => [
-                'required' => [
-                    ':input[name="shipping_mode"]' => ['value' => 'postal'],
-                    ':input[name="presentee_shipping"]' => ['checked' => false],
-                ],
-            ],
-        ];
-        $form['contact']['email'] = [
-            '#type' => 'textfield',
-            '#title' => 'E-Mail-Adresse',
-            '#required' => true,
-        ];
-
-        $form['as_present'] = [
-            '#type' => 'checkbox',
-            '#title' => 'Als Geschenk',
-            '#description' => 'Ich möchte das Zertifikat verschenken.',
-        ];
-        $form['presentee_shipping'] = [
-            '#type' => 'checkbox',
-            '#title' => 'An Beschenkte/n versenden',
-            '#description' => 'Das Zertifikat soll direkt an die/den Beschenkte/n versendet werden.',
-            '#states' => [
-                'visible' => [
-                    ':input[name="as_present"]' => [
-                        'checked' => true,
-                    ],
-                    ':input[name="shipping_mode"]' => [
-                        ['value' => 'email'],
-                        ['value' => 'postal'],
-                    ],
-                ],
-            ],
-        ];
-
-        $form['presentee'] = [
-            '#type' => 'fieldset',
-            '#title' => 'Verschenken an',
-            '#tree' => true,
-            '#states' => [
-                'visible' => [
-                    ':input[name="as_present"]' => [
-                        'checked' => true,
-                    ],
-                ],
-            ],
-        ];
-        $form['presentee']['first_name'] = [
-            '#type' => 'textfield',
-            '#title' => 'Vorname',
-            '#states' => [
-                'required' => [
-                    ':input[name="as_present"]' => ['checked' => true],
-                ],
-            ],
-        ];
-        $form['presentee']['last_name'] = [
-            '#type' => 'textfield',
-            '#title' => 'Nachname',
-            '#states' => [
-                'required' => [
-                    ':input[name="as_present"]' => ['checked' => true],
-                ],
-            ],
-        ];
-        $form['presentee']['street_address'] = [
-            '#type' => 'textfield',
-            '#title' => 'Straße, Hausnummer',
-            '#states' => [
-                'required' => [
-                    ':input[name="as_present"]' => ['checked' => true],
-                    ':input[name="shipping_mode"]' => ['value' => 'postal'],
-                    ':input[name="presentee_shipping"]' => ['checked' => true],
-                ],
-            ],
-        ];
-        $form['presentee']['postal_code'] = [
-            '#type' => 'textfield',
-            '#title' => 'Postleitzahl',
-            '#states' => [
-                'required' => [
-                    ':input[name="as_present"]' => ['checked' => true],
-                    ':input[name="shipping_mode"]' => ['value' => 'postal'],
-                    ':input[name="presentee_shipping"]' => ['checked' => true],
-                ],
-            ],
-        ];
-        $form['presentee']['city'] = [
-            '#type' => 'textfield',
-            '#title' => 'Ort',
-            '#states' => [
-                'required' => [
-                    ':input[name="as_present"]' => ['checked' => true],
-                    ':input[name="shipping_mode"]' => ['value' => 'postal'],
-                    ':input[name="presentee_shipping"]' => ['checked' => true],
-                ],
-            ],
-        ];
-        $form['presentee']['email'] = [
-            '#type' => 'textfield',
-            '#title' => 'E-Mail-Adresse',
-            '#states' => [
-                'required' => [
-                    ':input[name="as_present"]' => ['checked' => true],
-                    ':input[name="shipping_mode"]' => ['value' => 'email'],
-                    ':input[name="presentee_shipping"]' => ['checked' => true],
-                ],
-            ],
-        ];
-
-        $form['newsletter'] = [
-            '#type' => 'checkbox',
-            '#title' => 'Newsletter abonnieren',
-            '#description' => 'Newsletter mit aktuellen Themen rund um das Bergwaldprojekt',
-        ];
-
-        $form['gdpr_consent'] = [
-            '#type' => 'checkbox',
-            '#title' => 'Datenschutz',
-            '#description' => 'Ich habe die <a href="' . variable_get(
-                    'baumspenden_gdpr_link',
-                    '/datenschutz'
-                ) . '" target="_blank">Datenschutzerklärung</a> gelesen und akzeptiere diese.',
-            '#required' => true,
-        ];
-
-        $form['actions'] = [
-            '#type' => 'actions',
-        ];
-        $form['actions']['submit'] = [
-            '#type' => 'submit',
-            '#baumspenden_op' => 'preview',
-            '#value' => 'Vorschau',
-        ];
 
         return $form;
     }
@@ -388,7 +476,8 @@ class DrupalBaumspendenDonationForm
     {
         // Require a valid e-mail address.
         if (
-            self::isStatesRequired($form['contact']['email'], $form_state)
+            isset($form['contact']['email'])
+            && self::isStatesRequired($form['contact']['email'], $form_state)
             && !valid_email_address($form_state['values']['contact']['email'])
         ) {
             form_error(
@@ -397,7 +486,8 @@ class DrupalBaumspendenDonationForm
             );
         }
         if (
-            self::isStatesRequired($form['presentee']['email'], $form_state)
+            isset($form['presentee']['email'])
+            && self::isStatesRequired($form['presentee']['email'], $form_state)
             && !valid_email_address($form_state['values']['presentee']['email'])
         ) {
             form_error(
@@ -407,71 +497,73 @@ class DrupalBaumspendenDonationForm
         }
 
         // Handle hierarchically dependent submissions of plant info fields.
-        foreach (element_children($form['donations']) as $key) {
-            if (is_numeric($key)) {
-                $submitted_plant_info = &$form_state['values']['donations'][$key]['plant_info'];
+        if (!empty($form['donations'])) {
+            foreach (element_children($form['donations']) as $key) {
+                if (is_numeric($key)) {
+                    $submitted_plant_info = &$form_state['values']['donations'][$key]['plant_info'];
 
-                // Plant period field changes.
-                if (
-                    isset($submitted_plant_info['plant_period'])
-                    && isset($form_state['storage']['donations'][$key]['plant_info']['plant_period'])
-                    && $submitted_plant_info['plant_period'] != $form_state['storage']['donations'][$key]['plant_info']['plant_period']
-                ) {
-                    if (isset($form['donations'][$key]['plant_info']['plant_region'])) {
-                        // Reset dependent field for plant region.
-                        form_set_value(
-                            $form['donations'][$key]['plant_info']['plant_region'],
-                            null,
-                            $form_state
-                        );
+                    // Plant period field changes.
+                    if (
+                        isset($submitted_plant_info['plant_period'])
+                        && isset($form_state['storage']['donations'][$key]['plant_info']['plant_period'])
+                        && $submitted_plant_info['plant_period'] != $form_state['storage']['donations'][$key]['plant_info']['plant_period']
+                    ) {
+                        if (isset($form['donations'][$key]['plant_info']['plant_region'])) {
+                            // Reset dependent field for plant region.
+                            form_set_value(
+                                $form['donations'][$key]['plant_info']['plant_region'],
+                                null,
+                                $form_state
+                            );
+                        }
+                        if (isset($form['donations'][$key]['plant_info']['plant_tree'])) {
+                            // Reset dependent field for tree species.
+                            form_set_value(
+                                $form['donations'][$key]['plant_info']['plant_tree'],
+                                null,
+                                $form_state
+                            );
+                        }
                     }
-                    if (isset($form['donations'][$key]['plant_info']['plant_tree'])) {
-                        // Reset dependent field for tree species.
-                        form_set_value(
-                            $form['donations'][$key]['plant_info']['plant_tree'],
-                            null,
-                            $form_state
-                        );
+
+                    // Plant region field changes.
+                    if (
+                        isset($submitted_plant_info['plant_region'])
+                        && isset($Form_state['storage']['donations'][$key]['plant_info']['plant_region'])
+                        && $submitted_plant_info['plant_region'] != $form_state['storage']['donations'][$key]['plant_info']['plant_period']
+                    ) {
+                        if (isset($form['donations'][$key]['plant_info']['plant_tree'])) {
+                            // Reset dependent field for tree species.
+                            form_set_value(
+                                $form['donations'][$key]['plant_info']['plant_tree'],
+                                null,
+                                $form_state
+                            );
+                        }
                     }
-                }
 
-                // Plant region field changes.
-                if (
-                    isset($submitted_plant_info['plant_region'])
-                    && isset($Form_state['storage']['donations'][$key]['plant_info']['plant_region'])
-                    && $submitted_plant_info['plant_region'] != $form_state['storage']['donations'][$key]['plant_info']['plant_period']
-                ) {
-                    if (isset($form['donations'][$key]['plant_info']['plant_tree'])) {
-                        // Reset dependent field for tree species.
-                        form_set_value(
-                            $form['donations'][$key]['plant_info']['plant_tree'],
-                            null,
-                            $form_state
-                        );
-                    }
-                }
+                    // Save updated plant info field values in the storage.
+                    $form_state['storage']['donations'][$key]['plant_info'] = $form_state['values']['donations'][$key]['plant_info'];
 
-                // Save updated plant info field values in the storage.
-                $form_state['storage']['donations'][$key]['plant_info'] = $form_state['values']['donations'][$key]['plant_info'];
-
-                // Validate whether product exists with given plant info.
-                // This should never be necessary, since available plant information
-                // is being retrieved from existing Drupal Commerce products, but we
-                // are better avoiding invalid form submissions.
-                if (
-                    !empty($form_state['values']['donations'][$key]['plant_info']['plant_period'])
-                    && !empty($form_state['values']['donations'][$key]['plant_info']['plant_region'])
-                    && !empty($form_state['values']['donations'][$key]['plant_info']['plant_tree'])
-                ) {
-                    try {
-                        DrupalBaumspendenDonation::getCommerceProduct(
-                            $submitted_plant_info
-                        );
-                    } catch (Exception $exception) {
-                        form_error(
-                            $form['donations'][$key]['plant_info'],
-                            $exception->getMessage()
-                        );
+                    // Validate whether product exists with given plant info.
+                    // This should never be necessary, since available plant information
+                    // is being retrieved from existing Drupal Commerce products, but we
+                    // are better avoiding invalid form submissions.
+                    if (
+                        !empty($form_state['values']['donations'][$key]['plant_info']['plant_period'])
+                        && !empty($form_state['values']['donations'][$key]['plant_info']['plant_region'])
+                        && !empty($form_state['values']['donations'][$key]['plant_info']['plant_tree'])
+                    ) {
+                        try {
+                            DrupalBaumspendenDonation::getCommerceProduct(
+                                $submitted_plant_info
+                            );
+                        } catch (Exception $exception) {
+                            form_error(
+                                $form['donations'][$key]['plant_info'],
+                                $exception->getMessage()
+                            );
+                        }
                     }
                 }
             }
@@ -503,13 +595,18 @@ class DrupalBaumspendenDonationForm
                 unset($form_state['storage']['donations'][$key]);
                 $form_state['rebuild'] = true;
                 break;
+            case 'to_form':
+                $form_state['step'] = 'form';
+                $form_state['rebuild'] = true;
+                break;
             case 'preview':
                 // Preview (next step)
-                // TODO: Preview step.
-                // break;
-            case 'submit':
                 form_state_values_clean($form_state);
                 $form_state['storage'] = $form_state['values'];
+                $form_state['step'] = 'preview';
+                $form_state['rebuild'] = true;
+                break;
+            case 'submit':
                 try {
                     DrupalBaumspendenDonationForm::process(
                         $form_state['storage']
@@ -520,6 +617,8 @@ class DrupalBaumspendenDonationForm
                         t('There was an error processing the form.'),
                         'error'
                     );
+                    // Reset the form state and rebuild the form.
+                    $form_state['step'] = 'form';
                     $form_state['rebuild'] = true;
                 }
                 break;
@@ -636,51 +735,53 @@ class DrupalBaumspendenDonationForm
      */
     public static function isStatesRequired($element, &$form_state)
     {
-        foreach ($element['#states']['required'] as $required_field_key => $conditions) {
-            // TODO: This only covers selectors like :input[name="field_name"],
-            //   i.e. where the field name is the first occurence of the text
-            //   wrapped in double quotes (").
-            $required_field = explode('"', $required_field_key);
-            $required_field_parents = preg_split(
-                '/\]?\[/',
-                rtrim($required_field[1], ']')
-            );
-            foreach ($conditions as $type => $condition) {
-                switch ($type) {
-                    case 'value':
-                        $required_field_value = drupal_array_get_nested_value(
-                            $form_state['values'],
-                            $required_field_parents
-                        );
-                        $this_matched = $form_state['values'][$required_field[1]] == $element['#states']['required'][$required_field_key]['value'];
-                        if (!isset($matched)) {
-                            $matched = $this_matched;
-                        } else {
-                            $matched = $matched && $this_matched;
-                        }
-                        break;
-                    case 'checked':
-                        $required_field_value = drupal_array_get_nested_value(
-                            $form_state['values'],
-                            $required_field_parents
-                        );
-                        // Unchecked checkboxes have an integer value of 0,
-                        // whereas a string value of "0" might be a valid value.
-                        $this_matched = ($condition == ($required_field_value !== 0));
-                        if (!isset($matched)) {
-                            $matched = $this_matched;
-                        } else {
-                            $matched = $matched && $this_matched;
-                        }
-                        break;
-                    /* TODO: Add cases for the following states, if needed:
-                     *     - empty
-                     *     - filled
-                     *     - unchecked
-                     *     - expanded
-                     *     - collapsed
-                     *     - value
-                     */
+        if (!empty($element['#states']['required'])) {
+            foreach ($element['#states']['required'] as $required_field_key => $conditions) {
+                // TODO: This only covers selectors like :input[name="field_name"],
+                //   i.e. where the field name is the first occurence of the text
+                //   wrapped in double quotes (").
+                $required_field = explode('"', $required_field_key);
+                $required_field_parents = preg_split(
+                    '/\]?\[/',
+                    rtrim($required_field[1], ']')
+                );
+                foreach ($conditions as $type => $condition) {
+                    switch ($type) {
+                        case 'value':
+                            $required_field_value = drupal_array_get_nested_value(
+                                $form_state['values'],
+                                $required_field_parents
+                            );
+                            $this_matched = $form_state['values'][$required_field[1]] == $element['#states']['required'][$required_field_key]['value'];
+                            if (!isset($matched)) {
+                                $matched = $this_matched;
+                            } else {
+                                $matched = $matched && $this_matched;
+                            }
+                            break;
+                        case 'checked':
+                            $required_field_value = drupal_array_get_nested_value(
+                                $form_state['values'],
+                                $required_field_parents
+                            );
+                            // Unchecked checkboxes have an integer value of 0,
+                            // whereas a string value of "0" might be a valid value.
+                            $this_matched = ($condition == ($required_field_value !== 0));
+                            if (!isset($matched)) {
+                                $matched = $this_matched;
+                            } else {
+                                $matched = $matched && $this_matched;
+                            }
+                            break;
+                        /* TODO: Add cases for the following states, if needed:
+                         *     - empty
+                         *     - filled
+                         *     - unchecked
+                         *     - expanded
+                         *     - collapsed
+                         *     - value
+                         */
+                    }
                 }
             }
         }
