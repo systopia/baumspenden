@@ -423,23 +423,34 @@ class DrupalBaumspendenDonationForm
                 ];
                 break;
             case 'preview':
-                $storage = $form_state;
-                form_state_values_clean($storage);
-                $storage = $storage['values'];
-                foreach ($storage['donations'] as $key => $donation_data) {
-                    // TODO: Build certificate name when empty (initiator/presentee first and last name).
+                foreach ($form_state['storage']['donations'] as $key => $donation_data) {
+                    // Build certificate name when empty (initiator/presentee
+                    // first and last name).
+                    if (empty($certificate_name = $donation_data['certificate_name'])) {
+                        $certificate_name =
+                            $form_state['storage'][($form_state['storage']['as_present'] ? 'presentee' : 'contact')]['first_name']
+                            . ' '
+                            . $form_state['storage'][($form_state['storage']['as_present'] ? 'presentee' : 'contact')]['last_name'];
+                    }
+                    // Build certificate background image URL (derive from
+                    // plant_region).
                     $certificate_background_url = DrupalBaumspendenConfig::IMAGE_BASE_URL_CERTIFICATE_BACKGROUND . $donation_data['plant_info']['plant_region'] . '.jpg';
+                    // Add a collapsible fieldset for each certificate preview,
+                    // with only the first being expanded.
                     $form[$key] = [
                         '#type' => 'fieldset',
-                        '#title' => 'Zertifikat ' . ($key + 1),
+                        '#title' => 'Zertifikat für ' . $certificate_name,
                         '#collapsible' => true,
                         '#collapsed' => ($key != 0),
+                        // The actual preview uses a theme element.
+                        // @see baumspenden_theme().
+                        // @see baumspenden-certificate-preview.tpl.php.
                         'preview' => [
                             '#theme' => 'baumspenden_certificate_preview',
                             '#certificate_key' => $key,
                             '#plant_info' => $donation_data['plant_info'],
                             '#amount' => $donation_data['amount'],
-                            '#certificate_name' => $donation_data['certificate_name'],
+                            '#certificate_name' => $certificate_name,
                             '#background_image_url' => $certificate_background_url,
                         ],
                     ];
