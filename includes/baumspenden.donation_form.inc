@@ -36,6 +36,10 @@ class DrupalBaumspendenDonationForm
         $form['#submit'] = [
             ['DrupalBaumspendenDonationForm', 'submit'],
         ];
+        $form['#attached']['css'][] = drupal_get_path(
+                'module',
+                'baumspenden'
+            ) . '/css/baumspenden.css';
 
         if (empty($form_state['step'])) {
             $form_state['step'] = 'form';
@@ -129,14 +133,6 @@ class DrupalBaumspendenDonationForm
                         '#attributes' => [
                             'class' => [
                                 'hide-js',
-                            ],
-                        ],
-                        '#attached' => [
-                            'css' => [
-                                drupal_get_path(
-                                    'module',
-                                    'baumspenden'
-                                ) . '/css/baumspende.css',
                             ],
                         ],
                         // Do not validate anything (Ajax-like behavior).
