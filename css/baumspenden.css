@@ -14,3 +14,15 @@
 html.js .hide-js {
   display: none;
 }
+
+.preview-page {
+  background-size: contain;
+  background-repeat: no-repeat;
+  /* Proportional scaling for ISO 216 "A4" paper format. */
+  width: auto;
+  max-width: 960px;
+  height: 0;
+  padding-bottom: 141.42857%;
+  /* Center in parent element. */
+  margin: 0 auto;
+}

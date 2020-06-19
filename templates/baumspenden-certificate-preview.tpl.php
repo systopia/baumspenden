@@ -18,19 +18,10 @@
     #page-<?php print $certificate_key; ?> {
         /* Background image fully viewable without repeating. */
         background-image: url('<?php print $background_image_url; ?>');
-        background-size: contain;
-        background-repeat: no-repeat;
-        /* Proportional scaling for ISO 216 "A4" paper format. */
-        width: auto;
-        max-width: 210mm;
-        height: 0;
-        padding-bottom: 141.42857%;
-        /* Center in parent element. */
-        margin: 0 auto;
     }
 </style>
 
-<div id="page-<?php print $certificate_key; ?>">
+<div id="page-<?php print $certificate_key; ?>" class="preview-page">
 
     <div class="baumspenden-certificate__certificate-name">
         <?php print $certificate_name; ?>
