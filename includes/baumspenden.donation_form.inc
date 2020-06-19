@@ -477,6 +477,14 @@ class DrupalBaumspendenDonationForm
                     'baumspenden_' . $plant_info_name,
                     ['label' => 'hidden']
                 );
+                if ($plant_info_name == 'plant_tree') {
+                    $plural_variants = explode(
+                        '|',
+                        $plant_info[$plant_info_name][0]['#markup']
+                    );
+                    $is_plural = (int) ($donation_data['amount'] > 1);
+                    $plant_info[$plant_info_name][0]['#markup'] = $plural_variants[$is_plural];
+                }
             }
 
             // Add a collapsible fieldset for each certificate preview,
