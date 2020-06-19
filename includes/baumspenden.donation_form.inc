@@ -93,13 +93,14 @@ class DrupalBaumspendenDonationForm
                         '#default_value' => isset($donation['plant_info']['plant_period']) ? $donation['plant_info']['plant_period'] : null,
                     ];
 
-                    if (isset($form_state['storage']['donations'][$key]['plant_info']['plant_period'])) {
+                    if (!empty($form_state['storage']['donations'][$key]['plant_info']['plant_period'])) {
                         $form['donations'][$key]['plant_info']['plant_region'] = [
                             '#type' => 'select',
                             '#title' => 'Region',
                             '#options' => DrupalBaumspendenConfig::getPlantRegions(
                                 $form_state['storage']['donations'][$key]['plant_info']['plant_period']
                             ),
+                            '#empty_option' => '- Auswählen -',
                             '#required' => true,
                             '#ajax' => [
                                 'wrapper' => 'baumspenden-plant-info--' . $key,
@@ -112,7 +113,7 @@ class DrupalBaumspendenDonationForm
                         ];
                     }
 
-                    if (isset($form_state['storage']['donations'][$key]['plant_info']['plant_region'])) {
+                    if (!empty($form_state['storage']['donations'][$key]['plant_info']['plant_region'])) {
                         $form['donations'][$key]['plant_info']['plant_tree'] = [
                             '#type' => 'select',
                             '#title' => 'Baumart',
@@ -120,6 +121,7 @@ class DrupalBaumspendenDonationForm
                                 $form_state['storage']['donations'][$key]['plant_info']['plant_period'],
                                 $form_state['storage']['donations'][$key]['plant_info']['plant_region']
                             ),
+                            '#empty_option' => '- Auswählen -',
                             '#required' => true,
                             '#default_value' => isset($donation['plant_info']['plant_tree']) ? $donation['plant_info']['plant_tree'] : null,
                         ];
