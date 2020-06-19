@@ -41,15 +41,15 @@
     </div>
 
     <div class="baumspenden-certificate__plant-period">
-        <?php print $plant_info['plant_period']; ?>
+        <?php print render($plant_info['plant_period']); ?>
     </div>
 
     <div class="baumspenden-certificate__plant-region">
-        <?php print $plant_info['plant_region']; ?>
+        <?php print render($plant_info['plant_region']); ?>
     </div>
 
     <div class="baumspenden-certificate__plant-tree">
-        <?php print $plant_info['plant_tree']; ?>
+        <?php print render($plant_info['plant_tree']); ?>
     </div>
 
 </div>
