@@ -215,3 +215,11 @@ function baumspenden_install()
         field_create_instance($instance);
     }
 }
+
+/**
+ * Implements hook_uninstall().
+ */
+function baumspenden_uninstall()
+{
+    // TODO: field_delete_field()?
+}
