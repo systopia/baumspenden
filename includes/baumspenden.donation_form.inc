@@ -219,14 +219,13 @@ class DrupalBaumspendenDonationForm
             ],
         ];
 
+        $shipping_mode = field_info_field(
+            DrupalBaumspendenConfig::FIELD_NAME_SHIPPING_MODE
+        );
         $form['shipping_mode'] = [
             '#type' => 'select',
             '#title' => 'Versandoption',
-            '#options' => [
-                'email' => 'als PDF per E-Mail',
-                'postal' => 'postalisch',
-                'none' => 'kein Zertifikat',
-            ],
+            '#options' => $shipping_mode['settings']['allowed_values'],
             '#default_value' => isset($form_state['storage']['shipping_mode']) ? $form_state['storage']['shipping_mode'] : null,
         ];
 
@@ -720,6 +719,7 @@ class DrupalBaumspendenDonationForm
         }
         $order = DrupalBaumspendenOrder::create(
             $donations,
+            $storage['shipping_mode'],
             $storage['contact'],
             $storage['presentee']
         );

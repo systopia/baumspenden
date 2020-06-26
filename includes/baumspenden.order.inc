@@ -82,6 +82,7 @@ class DrupalBaumspendenOrder
      */
     public static function create(
         $donations = [],
+        $shipping_mode,
         $customer_data = [],
         $presentee_data = []
     ) {
@@ -97,6 +98,8 @@ class DrupalBaumspendenOrder
         // Add properties.
         $order = new self($commerce_order->order_id);
         $order->addDonations($donations);
+        $order->order_wrapper
+            ->{DrupalBaumspendenConfig::FIELD_NAME_SHIPPING_MODE} = $shipping_mode;
         $order->addCustomerProfile(
             $customer_data,
             self::CUSTOMER_PROFILE_TYPE_DONOR

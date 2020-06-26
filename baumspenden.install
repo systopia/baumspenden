@@ -76,6 +76,39 @@ function baumspenden_install()
     );
     field_delete_instance($instance, false);
 
+    // Create field for shipping_mode on order type.
+    if (!field_info_field(DrupalBaumspendenConfig::FIELD_NAME_SHIPPING_MODE)) {
+        $field_info = [
+            'field_name' => DrupalBaumspendenConfig::FIELD_NAME_SHIPPING_MODE,
+            'type' => 'list_text',
+            'settings' => [
+                'allowed_values' => [
+                    'email' => 'als PDF per E-Mail',
+                    'postal' => 'postalisch',
+                    'none' => 'kein Zertifikat',
+                ],
+            ],
+        ];
+        field_create_field($field_info);
+    }
+    if (!field_info_instance(
+        'commerce_order',
+        DrupalBaumspendenConfig::FIELD_NAME_SHIPPING_MODE,
+        DrupalBaumspendenOrder::ORDER_TYPE
+    )) {
+        $instance = [
+            'field_name' => DrupalBaumspendenConfig::FIELD_NAME_SHIPPING_MODE,
+            'entity_type' => 'commerce_order',
+            'bundle' => DrupalBaumspendenOrder::ORDER_TYPE,
+            'label' => 'Versandoption',
+            'required' => true,
+            'widget' => [
+                'type' => 'options_select',
+            ],
+        ];
+        field_create_instance($instance);
+    }
+
     /**
      * Commerce customer profiles.
      */
