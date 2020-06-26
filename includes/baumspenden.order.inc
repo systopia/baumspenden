@@ -104,10 +104,12 @@ class DrupalBaumspendenOrder
             $customer_data,
             self::CUSTOMER_PROFILE_TYPE_DONOR
         );
-        $order->addCustomerProfile(
-            $presentee_data,
-            self::CUSTOMER_PROFILE_TYPE_PRESENTEE
-        );
+        if (!empty($presentee_data)) {
+            $order->addCustomerProfile(
+                $presentee_data,
+                self::CUSTOMER_PROFILE_TYPE_PRESENTEE
+            );
+        }
 
         return $order;
     }

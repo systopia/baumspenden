@@ -701,7 +701,7 @@ class DrupalBaumspendenDonationForm
      */
     public static function process($storage)
     {
-        // TODO: Process newsletter request.
+        // TODO: Process newsletter request (send immediately).
 
         // Process donations.
         $donations = [];
@@ -712,11 +712,11 @@ class DrupalBaumspendenDonationForm
                 $donation_data['certificate_name']
             );
         }
-
-        // Create and checkout an order with donations and contact data.
-        if (!isset($storage['presentee'])) {
+        // Set default or clear presentee data, depending on selection.
+        if (!isset($storage['presentee']) || empty($storage['as_present'])) {
             $storage['presentee'] = [];
         }
+        // Create and checkout an order with donations and contact data.
         $order = DrupalBaumspendenOrder::create(
             $donations,
             $storage['shipping_mode'],
