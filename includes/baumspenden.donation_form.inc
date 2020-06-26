@@ -137,7 +137,8 @@ class DrupalBaumspendenDonationForm
                     '#title' => 'Baumart',
                     '#options' => DrupalBaumspendenConfig::getTreeSpecies(
                         $form_state['storage']['donations'][$key]['plant_info']['plant_period'],
-                        $form_state['storage']['donations'][$key]['plant_info']['plant_region']
+                        $form_state['storage']['donations'][$key]['plant_info']['plant_region'],
+                        'singular'
                     ),
                     '#empty_option' => '- Auswählen -',
                     '#required' => true,

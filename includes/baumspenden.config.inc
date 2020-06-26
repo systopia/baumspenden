@@ -73,13 +73,19 @@ class DrupalBaumspendenConfig
      * @param string $region_value
      *   The plant_region to retieve tree species for.
      *
+     * @param string $numerus
+     *   The grammatical number to return the labels in.
+     *
      * @return array
      *   The tree species values available for the given criteria.
      */
-    public static function getTreeSpecies($period_value, $region_value)
-    {
+    public static function getTreeSpecies(
+        $period_value,
+        $region_value,
+        $numerus = 'both'
+    ) {
         $field_info = field_info_field('baumspenden_plant_tree');
-        return array_intersect_key(
+        $species = array_intersect_key(
             $field_info['settings']['allowed_values'],
             self::getUsedPlantInfoFieldValues(
                 'baumspenden_plant_tree',
@@ -89,6 +95,21 @@ class DrupalBaumspendenConfig
                 ]
             )
         );
+
+        switch ($numerus) {
+            case 'singular':
+                array_walk($species, function(&$value) {
+                    list($value) = explode('|', $value);
+                });
+                break;
+            case 'plural':
+                array_walk($species, function(&$value) {
+                    list(,$value) = explode('|', $value);
+                });
+                break;
+        }
+
+        return $species;
     }
 
     /**
