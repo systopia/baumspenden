@@ -242,3 +242,29 @@ function baumspenden_theme($existing, $type, $theme, $path)
         ],
     ];
 }
+
+/**
+ * Implements hook_library_alter().
+ */
+function baumspenden_library_alter(&$libraries, $module) {
+    /**
+     * This is a temporary fix for a bug in the Drupal states API described in
+     * https://www.drupal.org/project/drupal/issues/1091852 and based on the
+     * sandbox module https://www.drupal.org/sandbox/nbouhid/2776183 and an
+     * additional fix in
+     * https://www.drupal.org/project/drupal/issues/1091852#comment-11611711.
+     *
+     * The states.js file is being completely replaced, which might lead to
+     * preserving potential security issues, if there are any in states.js being
+     * fixed in later Drupal versions.
+     *
+     * When the issue is resolved, removie this hook implementation and the
+     * js/states.js file in this module's root directory.
+     */
+    if ($module == 'system' && !empty($libraries['drupal.states']) {
+        $settings = $libraries['drupal.states']['js']['misc/states.js'];
+        unset($libraries['drupal.states']['js']['misc/states.js']);
+        $new_path = drupal_get_path('module', 'baumspenden') . '/js/states.js';
+        $libraries['drupal.states']['js'][$new_path] = $settings;
+    }
+}
