@@ -261,7 +261,7 @@ function baumspenden_library_alter(&$libraries, $module) {
      * When the issue is resolved, removie this hook implementation and the
      * js/states.js file in this module's root directory.
      */
-    if ($module == 'system' && !empty($libraries['drupal.states']) {
+    if ($module == 'system' && !empty($libraries['drupal.states'])) {
         $settings = $libraries['drupal.states']['js']['misc/states.js'];
         unset($libraries['drupal.states']['js']['misc/states.js']);
         $new_path = drupal_get_path('module', 'baumspenden') . '/js/states.js';
