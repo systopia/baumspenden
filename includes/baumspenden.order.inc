@@ -205,6 +205,106 @@ class DrupalBaumspendenOrder
      */
     public function complete()
     {
-        // TODO: Send to CiviCRM API.
+        // TODO: Send donations to CiviCRM API.
+        $query = new EntityFieldQuery;
+        $result = $query
+            ->entityCondition('entity_type', 'commerce_payment_transaction')
+            ->propertyCondition('order_id', $order->order_id)
+            ->propertyOrderBy('transaction_id', 'DESC')
+            ->range(0, 1)
+            ->execute();
+
+        foreach ($this->order_wrapper->commerce_line_items as $donation) {
+            // Add basic data.
+            $params = [
+                'first_name' => $this->order_wrapper
+                    ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_DONOR}
+                    ->commerce_customer_address
+                    ->first_name->value(),
+                'last_name' => $this->order_wrapper
+                    ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_DONOR}
+                    ->commerce_customer_address
+                    ->last_name->value(),
+                'street_address' => $this->order_wrapper
+                    ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_DONOR}
+                    ->commerce_customer_address
+                    ->thoroughfare->value(),
+                'postal_code' => $this->order_wrapper
+                    ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_DONOR}
+                    ->commerce_customer_address
+                    ->postal_code->value(),
+                'city' => $this->order_wrapper
+                    ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_DONOR}
+                    ->commerce_customer_address
+                    ->locality->value(),
+                'email' => $this->order_wrapper
+                    ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_DONOR}
+                    ->{DrupalBaumspendenConfig::FIELD_NAME_EMAIL}->email(),
+                'source', // TODO: Add source?
+                'payment_method',
+                'iban',
+                'bic',
+                'unit_price' => $donation->commerce_unit_price,
+                'amount' => $donation->quantity,
+                'plant_period' => $donation
+                    ->commerce_product
+                    ->baumspenden_plant_period->value(),
+                'plant_region' => $donation
+                    ->commerce_product
+                    ->baumspenden_plant_region->value(),
+                'plant_tree' => $donation
+                    ->commerce_product
+                    ->baumspenden_plant_tree->value(),
+                'plant_period_label' => $donation
+                    ->commerce_product
+                    ->baumspenden_plant_period->label(),
+                'plant_region_label' => $donation
+                    ->commerce_product
+                    ->baumspenden_plant_region->label(),
+                'plant_tree_label' => $donation
+                    ->commerce_product
+                    ->baumspenden_plant_tree->label(),
+                'shipping_mode' => $this->order_wrapper
+                    ->{DrupalBaumspendenConfig::FIELD_NAME_SHIPPING_MODE}->value(),
+                'as_present' => !empty(
+                    $this->order_wrapper
+                        ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
+                ),
+            ];
+            // Add presentee data.
+            if (!empty($this->order_wrapper->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE})) {
+                $params += [
+                    'presentee_first_name' => $this->order_wrapper
+                        ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
+                        ->commerce_customer_address
+                        ->first_name->value(),
+                    'presentee_last_name' => $this->order_wrapper
+                        ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
+                        ->commerce_customer_address
+                        ->last_name->value(),
+                    'presentee_street_address' => $this->order_wrapper
+                        ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
+                        ->commerce_customer_address
+                        ->thoroughfare->value(),
+                    'presentee_postal_code' => $this->order_wrapper
+                        ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
+                        ->commerce_customer_address
+                        ->postal_code->value(),
+                    'presentee_city' => $this->order_wrapper
+                        ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
+                        ->commerce_customer_address
+                        ->locality->value(),
+                    'presentee_email' => $this->order_wrapper
+                        ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
+                        ->{DrupalBaumspendenConfig::FIELD_NAME_EMAIL}->email(),
+                ];
+            }
+            // TODO: Add payment method data.
+            DrupalBaumspendenCiviMRF::sendCall(
+                'BWPBaumspende',
+                'submit',
+                $params
+            );
+        }
     }
 }
