@@ -185,6 +185,10 @@ class DrupalBaumspendenOrder
 
         commerce_customer_profile_save($customer_profile);
         $this->order_wrapper->{'commerce_customer_' . $profile_type} = $customer_profile->profile_id;
+        // Copy donor profile to commerce_customer_billing field.
+        if ($profile_type == DrupalBaumspendenOrder::CUSTOMER_PROFILE_TYPE_DONOR) {
+            $this->order_wrapper->commerce_customer_billing = $customer_profile->profile_id;
+        }
 
         commerce_order_save($this->order);
     }

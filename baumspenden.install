@@ -69,12 +69,14 @@ function baumspenden_install()
     // Remove commerce_customer_billing field from the order type, since we're
     // adding our own profile reference fields.
     // @see baumspenden_commerce_customer_profile_type_info().
-    $instance = field_info_instance(
-        'commerce_order',
-        'commerce_customer_billing',
-        DrupalBaumspendenOrder::ORDER_TYPE
-    );
-    field_delete_instance($instance, false);
+    // The field is required by Commerce payment methods, let's keep it and copy
+    // values from the donor's profile.
+//    $instance = field_info_instance(
+//        'commerce_order',
+//        'commerce_customer_billing',
+//        DrupalBaumspendenOrder::ORDER_TYPE
+//    );
+//    field_delete_instance($instance, false);
 
     // Create field for shipping_mode on order type.
     if (!field_info_field(DrupalBaumspendenConfig::FIELD_NAME_SHIPPING_MODE)) {
