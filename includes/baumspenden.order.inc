@@ -205,14 +205,25 @@ class DrupalBaumspendenOrder
      */
     public function complete()
     {
-        // TODO: Send donations to CiviCRM API.
+        // Retrieve latest payment transaction for this order. Since the order
+        // should only have one, and exactly one, when completing checkout, this
+        // will always retrieve the correct transaction.
         $query = new EntityFieldQuery;
         $result = $query
             ->entityCondition('entity_type', 'commerce_payment_transaction')
-            ->propertyCondition('order_id', $order->order_id)
+            ->propertyCondition('order_id', $this->order->order_id)
             ->propertyOrderBy('transaction_id', 'DESC')
             ->range(0, 1)
             ->execute();
+        if (isset($result['commerce_payment_transaction'])) {
+            $transaction = commerce_payment_transaction_load(
+                key($result['commerce_payment_transaction'])
+            );
+            $transaction_wrapper = entity_metadata_wrapper(
+                'commerce_payment_transaction',
+                $transaction
+            );
+        }
 
         foreach ($this->order_wrapper->commerce_line_items as $donation) {
             // Add basic data.
@@ -239,13 +250,11 @@ class DrupalBaumspendenOrder
                     ->locality->value(),
                 'email' => $this->order_wrapper
                     ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_DONOR}
-                    ->{DrupalBaumspendenConfig::FIELD_NAME_EMAIL}->email(),
-                'source', // TODO: Add source?
-                'payment_method',
-                'iban',
-                'bic',
-                'unit_price' => $donation->commerce_unit_price,
-                'amount' => $donation->quantity,
+                    ->{DrupalBaumspendenConfig::FIELD_NAME_EMAIL}->value(),
+                'source' => '', // TODO: Add source?
+                'payment_method' => $transaction_wrapper->payment_method->value(),
+                'unit_price' => $donation->commerce_unit_price->amount->value() / 100,
+                'amount' => (int) $donation->quantity->value(),
                 'plant_period' => $donation
                     ->commerce_product
                     ->baumspenden_plant_period->value(),
@@ -271,6 +280,23 @@ class DrupalBaumspendenOrder
                         ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
                 ),
             ];
+            // Add payment transaction data.
+            switch ($transaction->payment_method) {
+                case 'sepa_direct_debit':
+                    // iban_field does not yet support access via
+                    // EntityMetadataWrapper in the latest stable version,
+                    // see https://www.drupal.org/node/2589851
+                    $iban_field_items = field_get_items(
+                        'commerce_payment_transaction',
+                        $transaction,
+                        DrupalBaumspendenConfig::FIELD_NAME_IBAN
+                    );
+                    $params['iban'] = $iban_field_items[0]['iban_field'];
+                    $params['bic'] = $transaction_wrapper
+                        ->{DrupalBaumspendenConfig::FIELD_NAME_BIC}->value();
+                    break;
+                // TODO: Anything to add for other payment methods?
+            }
             // Add presentee data.
             if (!empty($this->order_wrapper->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE})) {
                 $params += [
@@ -296,11 +322,11 @@ class DrupalBaumspendenOrder
                         ->locality->value(),
                     'presentee_email' => $this->order_wrapper
                         ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
-                        ->{DrupalBaumspendenConfig::FIELD_NAME_EMAIL}->email(),
+                        ->{DrupalBaumspendenConfig::FIELD_NAME_EMAIL}->value(),
                 ];
             }
-            // TODO: Add payment method data.
-            DrupalBaumspendenCiviMRF::sendCall(
+            // Send donation order to CiviCRM.
+            $cmrf_result = DrupalBaumspendenCiviMRF::sendCall(
                 'BWPBaumspende',
                 'submit',
                 $params
