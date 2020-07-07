@@ -701,7 +701,15 @@ class DrupalBaumspendenDonationForm
      */
     public static function process($storage)
     {
-        // TODO: Process newsletter request (send immediately).
+        // Process newsletter request (send immediately).
+        if (!empty($storage['newsletter'])) {
+            // We don't care about failed newsletter subscriptions.
+            DrupalBaumspendenCiviMRF::sendCall(
+                'BWPBaumspende',
+                'newsletter_subscribe',
+                $storage['contact']
+            );
+        }
 
         // Process donations.
         $donations = [];
