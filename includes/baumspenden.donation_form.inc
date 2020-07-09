@@ -340,7 +340,7 @@ class DrupalBaumspendenDonationForm
                     ':input[name="as_present"]' => ['checked' => true],
                 ],
             ],
-            '#default_value' => isset($form_state['storage']['presentee']['first_name']) ? $form_state['storage']['presentee']['first_name'] : null,
+            '#default_value' => isset($form_state['storage']['presentee']['last_name']) ? $form_state['storage']['presentee']['last_name'] : null,
         ];
         $form['presentee']['street_address'] = [
             '#type' => 'textfield',
