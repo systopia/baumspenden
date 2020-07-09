@@ -219,6 +219,43 @@ function baumspenden_field_widget_form_alter(&$element, &$form_state, $context)
 }
 
 /**
+ * Implements hook_commerce_checkout_pane_info_alter().
+ */
+function baumspenden_commerce_checkout_pane_info_alter(&$checkout_panes)
+{
+    // Configure checkout panes for our order type.
+    $args = arg();
+    if ($args[0] == 'checkout' && is_numeric($args[1])) {
+        $order = commerce_order_load($args[1]);
+        if ($order->type == DrupalBaumspendenOrder::ORDER_TYPE) {
+            foreach ($checkout_panes as &$checkout_pane) {
+                switch ($checkout_pane['pane_id']) {
+                    case 'cart_contents':
+                        $checkout_pane['enabled'] = TRUE;
+                        $checkout_pane['page'] = 'checkout';
+                        break;
+                    case 'commerce_payment':
+                        $checkout_pane['enabled'] = TRUE;
+                        $checkout_pane['page'] = 'checkout';
+                        break;
+                    case 'commerce_payment_redirect':
+                        $checkout_pane['enabled'] = TRUE;
+                        $checkout_pane['page'] = 'payment';
+                        break;
+                    case 'checkout_completion_message':
+                        $checkout_pane['enabled'] = TRUE;
+                        $checkout_pane['page'] = 'complete';
+                        break;
+                    default:
+                        $checkout_pane['enabled'] = FALSE;
+                        break;
+                }
+            }
+        }
+    }
+}
+
+/**
  * Implements hook_theme().
  */
 function baumspenden_theme($existing, $type, $theme, $path)
