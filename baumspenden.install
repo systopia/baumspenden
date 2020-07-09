@@ -18,7 +18,7 @@
 function baumspenden_install()
 {
     /**
-     * Commerce product fields.
+     * Plant info fields on "Baumspende" commerce product type.
      */
     foreach (
         [
@@ -55,7 +55,7 @@ function baumspenden_install()
     }
 
     /**
-     * Commerce order type.
+     * "Baumspende" commerce order type.
      */
     $order_type = [
         'type' => DrupalBaumspendenOrder::ORDER_TYPE,
@@ -65,18 +65,6 @@ function baumspenden_install()
     commerce_order_types_commerce_order_type_save($order_type);
     // Add default fields to the order type.
     commerce_order_configure_order_type($order_type['type']);
-
-    // Remove commerce_customer_billing field from the order type, since we're
-    // adding our own profile reference fields.
-    // @see baumspenden_commerce_customer_profile_type_info().
-    // The field is required by Commerce payment methods, let's keep it and copy
-    // values from the donor's profile.
-//    $instance = field_info_instance(
-//        'commerce_order',
-//        'commerce_customer_billing',
-//        DrupalBaumspendenOrder::ORDER_TYPE
-//    );
-//    field_delete_instance($instance, false);
 
     // Create field for shipping_mode on order type.
     if (!field_info_field(DrupalBaumspendenConfig::FIELD_NAME_SHIPPING_MODE)) {
@@ -140,7 +128,7 @@ function baumspenden_install()
         field_create_instance($instance);
     }
 
-    // Create email field instance for donor e-mail address on the presentee
+    // Create email field instance for presentee e-mail address on the presentee
     // customer profile type.
     if (!field_info_instance(
         'commerce_customer_profile',
