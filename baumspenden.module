@@ -225,31 +225,35 @@ function baumspenden_commerce_checkout_pane_info_alter(&$checkout_panes)
 {
     // Configure checkout panes for our order type.
     $args = arg();
-    if ($args[0] == 'checkout' && is_numeric($args[1])) {
+    if (count($args) == 2 && $args[0] == 'checkout' && is_numeric($args[1])) {
         $order = commerce_order_load($args[1]);
-        if ($order->type == DrupalBaumspendenOrder::ORDER_TYPE) {
-            foreach ($checkout_panes as &$checkout_pane) {
-                switch ($checkout_pane['pane_id']) {
-                    case 'cart_contents':
-                        $checkout_pane['enabled'] = TRUE;
-                        $checkout_pane['page'] = 'checkout';
-                        break;
-                    case 'commerce_payment':
-                        $checkout_pane['enabled'] = TRUE;
-                        $checkout_pane['page'] = 'checkout';
-                        break;
-                    case 'commerce_payment_redirect':
-                        $checkout_pane['enabled'] = TRUE;
-                        $checkout_pane['page'] = 'payment';
-                        break;
-                    case 'checkout_completion_message':
-                        $checkout_pane['enabled'] = TRUE;
-                        $checkout_pane['page'] = 'complete';
-                        break;
-                    default:
-                        $checkout_pane['enabled'] = FALSE;
-                        break;
-                }
+    }
+    if (count($args) == 2 && $args[0] == 'system' && $args[1] == 'ajax') {
+        list($form, $form_state, $form_id, $form_build_id, $commands) = ajax_get_form();
+        $order = $form_state['order'];
+    }
+    if (isset($order) && $order->type == DrupalBaumspendenOrder::ORDER_TYPE) {
+        foreach ($checkout_panes as &$checkout_pane) {
+            switch ($checkout_pane['pane_id']) {
+                case 'cart_contents':
+                    $checkout_pane['enabled'] = TRUE;
+                    $checkout_pane['page'] = 'checkout';
+                    break;
+                case 'commerce_payment':
+                    $checkout_pane['enabled'] = TRUE;
+                    $checkout_pane['page'] = 'checkout';
+                    break;
+                case 'commerce_payment_redirect':
+                    $checkout_pane['enabled'] = TRUE;
+                    $checkout_pane['page'] = 'payment';
+                    break;
+                case 'checkout_completion_message':
+                    $checkout_pane['enabled'] = TRUE;
+                    $checkout_pane['page'] = 'complete';
+                    break;
+                default:
+                    $checkout_pane['enabled'] = FALSE;
+                    break;
             }
         }
     }
