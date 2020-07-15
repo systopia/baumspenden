@@ -104,6 +104,12 @@ class DrupalBaumspendenOrder
             $customer_data,
             self::CUSTOMER_PROFILE_TYPE_DONOR
         );
+        // Add default commerce_customer_billing profile for painless payment
+        // processing, cince payment processors sometimes require it.
+        $order->addCustomerProfile(
+            $customer_data,
+            'billing'
+        );
         if (!empty($presentee_data)) {
             $order->addCustomerProfile(
                 $presentee_data,
@@ -179,16 +185,15 @@ class DrupalBaumspendenOrder
         $customer_profile_wrapper->commerce_customer_address->name_line = null;
 
         // Set e-mail address field(s) (created in .install).
-        if (!empty($customer_data['email'])) {
+        if (
+            !empty($customer_data['email'])
+            && isset($customer_profile_wrapper->{DrupalBaumspendenConfig::FIELD_NAME_EMAIL})
+        ) {
             $customer_profile_wrapper->{DrupalBaumspendenConfig::FIELD_NAME_EMAIL} = $customer_data['email'];
         }
 
         commerce_customer_profile_save($customer_profile);
         $this->order_wrapper->{'commerce_customer_' . $profile_type} = $customer_profile->profile_id;
-        // Copy donor profile to commerce_customer_billing field.
-        if ($profile_type == DrupalBaumspendenOrder::CUSTOMER_PROFILE_TYPE_DONOR) {
-            $this->order_wrapper->commerce_customer_billing = $customer_profile->profile_id;
-        }
 
         commerce_order_save($this->order);
     }
@@ -279,9 +284,10 @@ class DrupalBaumspendenOrder
                     ->baumspenden_plant_tree->label(),
                 'shipping_mode' => $this->order_wrapper
                     ->{DrupalBaumspendenConfig::FIELD_NAME_SHIPPING_MODE}->value(),
-                'as_present' => !empty(
+                'as_present' => (int) isset(
                     $this->order_wrapper
                         ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
+                        ->commerce_customer_address
                 ),
             ];
             // Add payment transaction data.
@@ -302,7 +308,11 @@ class DrupalBaumspendenOrder
                 // TODO: Anything to add for other payment methods?
             }
             // Add presentee data.
-            if (!empty($this->order_wrapper->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE})) {
+            if (isset(
+                $this->order_wrapper
+                    ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
+                    ->commerce_customer_address
+            )) {
                 $params += [
                     'presentee_first_name' => $this->order_wrapper
                         ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
@@ -324,6 +334,14 @@ class DrupalBaumspendenOrder
                         ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
                         ->commerce_customer_address
                         ->locality->value(),
+                ];
+            }
+            if (isset(
+                $this->order_wrapper
+                    ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
+                    ->{DrupalBaumspendenConfig::FIELD_NAME_EMAIL}
+            )) {
+                $params += [
                     'presentee_email' => $this->order_wrapper
                         ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
                         ->{DrupalBaumspendenConfig::FIELD_NAME_EMAIL}->value(),
