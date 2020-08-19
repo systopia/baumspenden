@@ -257,6 +257,17 @@ class DrupalBaumspendenDonationForm
             ],
             '#default_value' => isset($form_state['storage']['contact']['street_address']) ? $form_state['storage']['contact']['street_address'] : null,
         ];
+        $form['contact']['supplemental_address_1'] = [
+            '#type' => 'textfield',
+            '#title' => 'Adresszusatz',
+            '#states' => [
+                'required' => [
+                    ':input[name="shipping_mode"]' => ['value' => 'postal'],
+                    ':input[name="as_present"]' => ['checked' => false],
+                ],
+            ],
+            '#default_value' => isset($form_state['storage']['contact']['supplemental_address_1']) ? $form_state['storage']['contact']['supplemental_address_1'] : null,
+        ];
         $form['contact']['postal_code'] = [
             '#type' => 'textfield',
             '#title' => 'Postleitzahl',
@@ -332,10 +343,20 @@ class DrupalBaumspendenDonationForm
                 'required' => [
                     ':input[name="as_present"]' => ['checked' => true],
                     ':input[name="shipping_mode"]' => ['value' => 'postal'],
-                    ':input[name="as_present"]' => ['checked' => true],
                 ],
             ],
             '#default_value' => isset($form_state['storage']['presentee']['street_address']) ? $form_state['storage']['presentee']['street_address'] : null,
+        ];
+        $form['presentee']['supplemental_address_1'] = [
+            '#type' => 'textfield',
+            '#title' => 'Adresszusatz',
+            '#states' => [
+                'required' => [
+                    ':input[name="as_present"]' => ['checked' => true],
+                    ':input[name="shipping_mode"]' => ['value' => 'postal'],
+                ],
+            ],
+            '#default_value' => isset($form_state['storage']['presentee']['supplemental_address_1']) ? $form_state['storage']['presentee']['supplemental_address_1'] : null,
         ];
         $form['presentee']['postal_code'] = [
             '#type' => 'textfield',

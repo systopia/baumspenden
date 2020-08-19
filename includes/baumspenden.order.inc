@@ -171,6 +171,7 @@ class DrupalBaumspendenOrder
                 'first_name' => 'first_name',
                 'last_name' => 'last_name',
                 'street_address' => 'thoroughfare',
+                'supplemental_address_1' => 'premise',
                 'postal_code' => 'postal_code',
                 'city' => 'locality',
             ] as $key => $property
@@ -249,6 +250,10 @@ class DrupalBaumspendenOrder
                     ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_DONOR}
                     ->commerce_customer_address
                     ->thoroughfare->value(),
+                'supplemental_address_1' => $this->order_wrapper
+                    ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_DONOR}
+                    ->commerce_customer_address
+                    ->premise->value(),
                 'postal_code' => $this->order_wrapper
                     ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_DONOR}
                     ->commerce_customer_address
@@ -326,6 +331,10 @@ class DrupalBaumspendenOrder
                         ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
                         ->commerce_customer_address
                         ->thoroughfare->value(),
+                    'presentee_supplemental_address_1' => $this->order_wrapper
+                        ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
+                        ->commerce_customer_address
+                        ->premise->value(),
                     'presentee_postal_code' => $this->order_wrapper
                         ->{'commerce_customer_' . self::CUSTOMER_PROFILE_TYPE_PRESENTEE}
                         ->commerce_customer_address
