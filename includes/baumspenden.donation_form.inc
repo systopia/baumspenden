@@ -344,7 +344,6 @@ class DrupalBaumspendenDonationForm
                 'required' => [
                     ':input[name="as_present"]' => ['checked' => true],
                     ':input[name="shipping_mode"]' => ['value' => 'postal'],
-                    ':input[name="as_present"]' => ['checked' => true],
                 ],
             ],
             '#default_value' => isset($form_state['storage']['presentee']['postal_code']) ? $form_state['storage']['presentee']['postal_code'] : null,
@@ -356,7 +355,6 @@ class DrupalBaumspendenDonationForm
                 'required' => [
                     ':input[name="as_present"]' => ['checked' => true],
                     ':input[name="shipping_mode"]' => ['value' => 'postal'],
-                    ':input[name="as_present"]' => ['checked' => true],
                 ],
             ],
             '#default_value' => isset($form_state['storage']['presentee']['city']) ? $form_state['storage']['presentee']['city'] : null,
@@ -368,7 +366,6 @@ class DrupalBaumspendenDonationForm
                 'required' => [
                     ':input[name="as_present"]' => ['checked' => true],
                     ':input[name="shipping_mode"]' => ['value' => 'email'],
-                    ':input[name="as_present"]' => ['checked' => true],
                 ],
             ],
             '#default_value' => isset($form_state['storage']['presentee']['email']) ? $form_state['storage']['presentee']['email'] : null,
