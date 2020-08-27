@@ -455,6 +455,7 @@ class DrupalBaumspendenDonationForm
             $certificate_background_url = DrupalBaumspendenConfig::IMAGE_BASE_URL_CERTIFICATE_BACKGROUND . $donation_data['plant_info']['plant_region'] . '.jpg';
 
             // Build render arrays for plant_info field values.
+            $is_plural = (int) ($donation_data['amount'] > 1);
             $plant_info = [];
             $commerce_product = DrupalBaumspendenDonation::getCommerceProduct(
                 $donation_data['plant_info']
@@ -471,8 +472,11 @@ class DrupalBaumspendenDonationForm
                         '|',
                         $plant_info[$plant_info_name][0]['#markup']
                     );
-                    $is_plural = (int) ($donation_data['amount'] > 1);
                     $plant_info[$plant_info_name][0]['#markup'] = $plural_variants[$is_plural];
+                    // Replace singular amount with article if set.
+                    if (!$is_plural && !empty($plural_variants[2])) {
+                        $donation_data['amount'] = $plural_variants[2];
+                    }
                 }
             }
 
